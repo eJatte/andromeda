@@ -26,14 +26,14 @@ public class Texture {
     private static Map<String, Texture> textures = new HashMap<>();
 
     public static Texture loadTexture(String texturePath) {
-        return loadTexture(texturePath, true, true);
+        return loadTexture(texturePath, true);
     }
 
     public static Texture loadNormalTexture(String texturePath) {
-        return loadTexture(texturePath, false, false);
+        return loadTexture(texturePath, false);
     }
 
-    private static Texture loadTexture(String texturePath, boolean srgb, boolean alpha) {
+    private static Texture loadTexture(String texturePath, boolean srgb) {
         if (!textures.containsKey(texturePath)) {
 
             var textureData = new TextureData().load(texturePath);
@@ -49,7 +49,7 @@ public class Texture {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             var internalformat = srgb ? GL_SRGB : GL_RGB;
-            if (alpha)
+            if (textureData.n_channels == 4)
                 internalformat = srgb ? GL_SRGB_ALPHA : GL_RGBA;
 
             glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textureData.width, textureData.height, 0, textureData.format, GL_UNSIGNED_BYTE, textureData.buffer);

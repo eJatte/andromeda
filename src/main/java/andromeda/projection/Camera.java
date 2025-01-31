@@ -11,12 +11,14 @@ import static org.joml.Math.*;
 public class Camera {
     private Vector3f position, targetPosition, cameraForward, targetCameraForward, cameraUp, cameraRight;
 
-    private float pitch = -20.0f, yaw = -90.0f;
+    private float pitch = -5.0f, yaw = 0.0f;
 
     private boolean mouseEnabled = false;
 
+    private int width, height;
+
     public Camera() {
-        this.position = new Vector3f(0, 4.0f, 10.0f);
+        this.position = new Vector3f(-11.0f, 3.0f, 0.0f);
         this.targetPosition = this.position;
         this.targetCameraForward = getCameraForward();
         this.cameraForward = this.targetCameraForward;
@@ -26,6 +28,10 @@ public class Camera {
 
     public void update() {
         float speed = 0.05f;
+
+        if (Input.get().key(KeyCode.KEY_LEFT_SHIFT)) {
+            speed *= 3;
+        }
 
         this.cameraRight = cameraForward.cross(new Vector3f(0, 1, 0), new Vector3f());
         this.cameraUp = cameraRight.cross(cameraForward, new Vector3f());
@@ -43,21 +49,21 @@ public class Camera {
             direction.sub(this.cameraRight);
 
         if (Input.get().key(KeyCode.KEY_E))
-            direction.add(new Vector3f(0,1,0));
+            direction.add(new Vector3f(0, 1, 0));
         if (Input.get().key(KeyCode.KEY_Q))
-            direction.sub(new Vector3f(0,1,0));
+            direction.sub(new Vector3f(0, 1, 0));
 
         if (direction.length() > 0)
             direction.normalize().mul(speed);
 
 
         this.targetPosition.add(direction);
-        var diffPos =  this.targetPosition.sub( this.position, new Vector3f());
+        var diffPos = this.targetPosition.sub(this.position, new Vector3f());
         this.position.add(diffPos.mul(0.2f));
 
         this.targetCameraForward = getCameraForward();
 
-        var diffFor =  this.targetCameraForward.sub( this.cameraForward, new Vector3f());
+        var diffFor = this.targetCameraForward.sub(this.cameraForward, new Vector3f());
         this.cameraForward.add(diffFor.mul(0.2f));
         this.cameraForward.normalize();
     }
@@ -94,11 +100,27 @@ public class Camera {
         return this.position;
     }
 
-    public Matrix4f getProjection(int width, int height) {
+    public Matrix4f getProjection() {
         return new Matrix4f().setPerspective(45.0f, (float) width / (float) height, 0.1f, 100.0f);
     }
 
     public void setMouseEnabled(boolean mouseEnabled) {
         this.mouseEnabled = mouseEnabled;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

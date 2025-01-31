@@ -1,19 +1,16 @@
 package andromeda.shader;
 
 import andromeda.light.Light;
+import andromeda.light.LightType;
+import andromeda.light.PointLight;
 import andromeda.material.Material;
-import andromeda.resources.MaterialRepresentation;
-import andromeda.texture.Texture;
-import com.google.gson.Gson;
-import org.apache.commons.io.FileUtils;
+import andromeda.projection.Camera;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +64,18 @@ public class Program {
         glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
     }
 
-    public void setMat4(String name, Matrix4f mat4){
-        var buffer = BufferUtils.createFloatBuffer(4*4);
-        glUniformMatrix4fv(getUniformLocation(name), false, mat4.get(buffer));
+    public void setVec2(String name, Vector2f v) {
+        glUniform2f(getUniformLocation(name), v.x, v.y);
+    }
+
+    public void setMat4(String name, Matrix4f mat4) {
+        glUniformMatrix4fv(getUniformLocation(name), false, mat4.get(new float[4*4]));
+    }
+
+    public void setCamera(Camera camera) {
+        this.setMat4("projection", camera.getProjection());
+        this.setMat4("view", camera.getView());
+        this.setVec3("eyePos", camera.getPosition());
     }
 
     public void setMaterial(String name, Material material) {
@@ -77,30 +83,45 @@ public class Program {
         this.setVec3("%s.diffuse".formatted(name), material.diffuse);
         this.setVec3("%s.specular".formatted(name), material.specular);
         this.setFloat("%s.shininess".formatted(name), material.shininess);
+        this.setVec2("%s.texture_scale".formatted(name), material.texture_scale);
 
         if (material.diffuse_texture != null) {
             material.diffuse_texture.bind(GL_TEXTURE0);
             this.setInt("diffuse_texture", 0);
-        }
-        else {
+            this.setBool("has_diffuse_texture", true);
+        } else {
             this.setBool("has_diffuse_texture", false);
         }
 
-        if (material.diffuse_texture != null) {
+        if (material.normal_texture != null) {
             material.normal_texture.bind(GL_TEXTURE1);
             this.setInt("normal_texture", 1);
-        }
-        else {
+            this.setBool("has_normal_texture", true);
+        } else {
             this.setBool("has_normal_texture", false);
+        }
+
+        if (material.roughness_texture != null) {
+            material.roughness_texture.bind(GL_TEXTURE2);
+            this.setInt("roughness_texture", 0);
+            this.setBool("has_roughness_texture", true);
+        } else {
+            this.setBool("has_roughness_texture", false);
         }
     }
 
     public void setLight(String name, Light light) {
         this.setVec3("%s.position".formatted(name), light.position);
-        this.setVec3("%s.ambient".formatted(name), light.ambient);
         this.setVec3("%s.diffuse".formatted(name), light.diffuse);
         this.setVec3("%s.specular".formatted(name), light.specular);
 
+        if (light.type() == LightType.DIRECTIONAL) {
+            this.setInt("%s.type".formatted(name), 0);
+        }
+        if (light.type() == LightType.POINT) {
+            this.setInt("%s.type".formatted(name), 1);
+            this.setFloat("%s.radius".formatted(name), ((PointLight) light).radius);
+        }
     }
 
     public void setLight(String name, int index, Light light) {

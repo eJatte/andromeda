@@ -1,0 +1,14 @@
+{
+  "position": [0.0, 0.0, 0.0],
+  "scale": [1.0, 1.0, 1.0],
+  "material": "materials/brick_material.json",
+  "geometry": "cube",
+  "children": [{
+    "position": [3.0, 0.0, 0.0],
+    "scale": [0.4, 2.0, 0.4],
+    "material": "materials/red_material.json",
+    "geometry": "cube",
+    "children": []
+    }
+  ]
+}

@@ -38,7 +38,7 @@ public class Input {
     private Vector2f mousePosition, mouseDelta;
 
     private Input() {
-        keys = new KeyState[KeyCode.KEY_LAST + 1];
+        keys = new KeyState[KeyCode.KEY_LAST + 200];
         Arrays.fill(keys, KeyState.RELEASED);
         keyEvents = new LinkedList<>();
         mousePosEvents = new LinkedList<>();
@@ -71,10 +71,12 @@ public class Input {
         while (!keyEvents.isEmpty()) {
             var event = keyEvents.remove();
 
-            if (event.pressed && keys[event.key] == KeyState.RELEASED) {
-                keys[event.key] = KeyState.DOWN;
-            } else if (!event.pressed && keys[event.key] == KeyState.PRESSED) {
-                keys[event.key] = KeyState.UP;
+            if(event.key > -1) {
+                if (event.pressed && keys[event.key] == KeyState.RELEASED) {
+                    keys[event.key] = KeyState.DOWN;
+                } else if (!event.pressed && keys[event.key] == KeyState.PRESSED) {
+                    keys[event.key] = KeyState.UP;
+                }
             }
         }
 

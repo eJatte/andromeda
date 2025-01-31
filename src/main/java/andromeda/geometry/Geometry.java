@@ -17,7 +17,12 @@ public class Geometry {
     private int m_vao, m_vbo, m_ebo;
 
     public Geometry(Vector3f[] positions, Vector2f[] uvs, int[] indices) {
-        this.vertices = calculateVertexData(positions, uvs, indices);
+        this.vertices = calculateVertexData(positions, new Vector3f[]{}, uvs, indices);
+        this.indices = indices;
+    }
+
+    public Geometry(Vector3f[] positions, Vector3f[] normals, Vector2f[] uvs, int[] indices) {
+        this.vertices = calculateVertexData(positions, normals, uvs, indices);
         this.indices = indices;
     }
 
@@ -31,8 +36,8 @@ public class Geometry {
         glBindBuffer(GL_ARRAY_BUFFER, this.m_vbo);
         glBufferData(GL_ARRAY_BUFFER, vertex_buffer, GL_STATIC_DRAW);
 
-        // vector   normal   uv
-        // V1 V2 V3 N1 N2 N3 U1 U2
+        // position  normal    uv     tangent
+        // V1 V2 V3  N1 N2 N3  U1 U2  T1 T2 T3
 
         int stride = Vertex.SIZE * 4;
 
@@ -76,16 +81,20 @@ public class Geometry {
         Vector3f[] positions = Arrays.stream(this.vertices).map(v -> v.position).toArray(Vector3f[]::new);
         Vector2f[] uvs = Arrays.stream(this.vertices).map(v -> v.uv).toArray(Vector2f[]::new);
 
-        this.vertices = calculateVertexData(positions, uvs, this.indices);
+        this.vertices = calculateVertexData(positions, new Vector3f[]{}, uvs, this.indices);
     }
 
-    private static Vertex[] calculateVertexData(Vector3f[] positions, Vector2f[] uvs, int[] indices) {
+    private static Vertex[] calculateVertexData(Vector3f[] positions, Vector3f[] normals, Vector2f[] uvs, int[] indices) {
         var vertices = new Vertex[positions.length];
+        boolean has_normals = normals.length != 0;
 
         for (int i = 0; i < vertices.length; i++) {
             var vertex = new Vertex();
             vertex.position = positions[i];
             vertex.uv = uvs[i];
+            if (has_normals) {
+                vertex.normal = normals[i];
+            }
             vertices[i] = vertex;
         }
 
@@ -125,10 +134,11 @@ public class Geometry {
             bitangent.y = f * (-delta_u2 * e1.y + delta_u1 * e2.y);
             bitangent.z = f * (-delta_u2 * e1.z + delta_u1 * e2.z);
 
-
-            vertices[i1].normal.add(n);
-            vertices[i2].normal.add(n);
-            vertices[i3].normal.add(n);
+            if (!has_normals) {
+                vertices[i1].normal.add(n);
+                vertices[i2].normal.add(n);
+                vertices[i3].normal.add(n);
+            }
 
             vertices[i1].tangent.add(tangent);
             vertices[i2].tangent.add(tangent);

@@ -11,6 +11,9 @@ import andromeda.light.Light;
 import andromeda.material.Material;
 import andromeda.projection.Camera;
 import andromeda.resources.MaterialRepresentation;
+import andromeda.resources.ModelLoader;
+import andromeda.resources.SceneLoader;
+import andromeda.scene.Scene;
 import andromeda.shader.Program;
 import andromeda.shader.Shader;
 import andromeda.texture.Texture;
@@ -150,39 +153,13 @@ public class HelloWorld {
         // Set the clear color
         glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
-        List<Entity> entities = new ArrayList<>();
-
-        var geometry = Primitives.cube();
-        geometry.upload();
-        var material = Material.loadMaterial("materials/brick_material.json");
-        var cube = new Entity(material, geometry, new RotateUpdatable());
-
-        entities.add(cube);
-
-        var plane_geo = Primitives.grid(10, 10, 1);
-        plane_geo.upload();
-        var plane = new Entity(material, plane_geo, (e) -> {
-        });
-        plane.transform().translate(-5, -1.0f, -5);
-        entities.add(plane);
-
-        var light_shader = new Shader("shaders/phong.vert", "shaders/light_shader.frag");
-        light_shader.compile();
-
-        var light_program = new Program();
-        light_program.link(light_shader);
-
-        var camera = new Camera();
-
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        var light = new Light(new Vector3f(0, 0, 4), new Vector3f(1.0f));
-        var light2 = new Light(new Vector3f(-4, 4, -4), new Vector3f(0.6f, 0.1f, 0.1f));
-        var light3 = new Light(new Vector3f(4, 4, -4), new Vector3f(0.1f, 0.6f, 0.1f));
-        var light4 = new Light(new Vector3f(0, 4, -4), new Vector3f(0.1f, 0.1f, 0.6f));
+        var scene_path = "scenes/basic_scene.json";
 
-        var lights = List.of(light, light2, light3, light4);
+        var scene = SceneLoader.loadScene(scene_path);
+        var camera = new Camera();
 
         boolean wireframe = false;
 
@@ -190,9 +167,16 @@ public class HelloWorld {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
             Input.get().update();
 
-            if (Input.get().keyUp(KeyCode.KEY_R)) {
+            camera.setWidth(width);
+            camera.setHeight(height);
+
+            if (Input.get().keyUp(KeyCode.KEY_U)) {
                 wireframe = !wireframe;
                 glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
+            }
+
+            if (Input.get().keyUp(KeyCode.KEY_R)) {
+                scene = SceneLoader.loadScene(scene_path);
             }
 
             if (Input.get().keyUp(KeyCode.MOUSE_BUTTON_1)) {
@@ -207,64 +191,12 @@ public class HelloWorld {
 
             camera.update();
 
-            updateEntities(entities);
-            renderEntities(entities, camera, lights);
-
-            renderLight(light, geometry, light_program, camera, width, height);
-            renderLight(light2, geometry, light_program, camera, width, height);
-            renderLight(light3, geometry, light_program, camera, width, height);
-            renderLight(light4, geometry, light_program, camera, width, height);
+            scene.update();
+            scene.render(camera);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
-    }
-
-    private void updateEntities(List<Entity> entities) {
-        entities.forEach(this::updateEntity);
-    }
-
-    private void updateEntity(Entity entity) {
-        entity.updatable().ifPresent(u -> u.update(entity));
-        entity.children().forEach(this::updateEntity);
-    }
-
-    private void renderEntities(List<Entity> entities, Camera camera, List<Light> lights) {
-        entities.forEach(entity -> renderEntity(entity, camera, lights, new Matrix4f()));
-    }
-
-    private void renderEntity(Entity entity, Camera camera, List<Light> lights, Matrix4f parent_transform) {
-        var transform = parent_transform.mul(entity.transform(), new Matrix4f());
-        if (entity.geometry().isPresent() && entity.material().isPresent()) {
-            var geometry = entity.geometry().get();
-            var material = entity.material().get();
-            var program = material.program;
-
-            program.use();
-            program.setMat4("projection", camera.getProjection(width, height));
-            program.setMat4("view", camera.getView());
-            program.setVec3("eyePos", camera.getPosition());
-            program.setLights("lights", lights);
-
-            program.setMaterial("material", material);
-            program.setMat4("model", transform);
-            geometry.render(program);
-        }
-
-        for (var child : entity.children()) {
-            renderEntity(child, camera, lights, transform);
-        }
-    }
-
-    private static void renderLight(Light light, Geometry geometry, Program program, Camera camera, int width, int height) {
-        var light_model = new Matrix4f().translate(light.position).scale(0.2f);
-        // render light
-        program.use();
-        program.setMat4("projection", camera.getProjection(width, height));
-        program.setMat4("view", camera.getView());
-        program.setMat4("model", light_model);
-        program.setVec3("color", light.diffuse);
-        geometry.render(program);
     }
 
     public static void main(String[] args) {

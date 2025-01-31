@@ -1,0 +1,9 @@
+{
+  "position": [0.0, -1.0, 0.0],
+  "scale": [10.0, 1.0, 10.0],
+  "material": "materials/brick_material.json",
+  "geometry": "plane",
+  "children": [
+
+  ]
+}

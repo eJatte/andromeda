@@ -2,9 +2,10 @@
 
 struct Light {
     vec3 position;
-    vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float radius;
+    int type;
 };
 
 struct Material {
@@ -12,6 +13,7 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    vec2 texture_scale;
 };
 
 out vec4 FragColor;
@@ -25,12 +27,15 @@ in mat3 m_tangent_to_world;
 
 uniform sampler2D diffuse_texture;
 uniform sampler2D normal_texture;
+uniform sampler2D roughness_texture;
+
+
 
 uniform Light lights[10];
 uniform int lightCount = 0;
 uniform vec3 eyePos;
 
-uniform bool has_diffuse_texture = true, has_normal_texture = true;
+uniform bool has_diffuse_texture = false, has_normal_texture = false, has_roughness_texture = false;
 
 uniform Material material;
 
@@ -45,17 +50,23 @@ void main()
     vec3 t_diffuse = vec3(1);
 
     if (has_diffuse_texture) {
-        t_diffuse = texture(diffuse_texture, v_uv).rgb;
+        t_diffuse = texture(diffuse_texture, v_uv*material.texture_scale).rgb;
     }
     if (has_normal_texture) {
-        vec3 t_normal = texture(normal_texture, v_uv).rgb;
+        vec3 t_normal = texture(normal_texture, v_uv*material.texture_scale).rgb;
         // remap from [0,1] to [-1,1]
         t_normal = t_normal * 2.0f - 1.0f;
 
         n = normalize(m_tangent_to_world * normalize(t_normal));
     }
 
-    vec3 c_ambient = vec3(0.2f) * t_diffuse * material.ambient;
+    float rougness = 1.0;
+
+    if (has_roughness_texture) {
+        rougness = texture(roughness_texture, v_uv*material.texture_scale).r;
+    }
+
+    vec3 c_ambient = vec3(0.1f, 0.1f, 0.1f) * t_diffuse * material.ambient;
     vec3 c_specular = vec3(0);
     vec3 c_diffuse = vec3(0);
 
@@ -64,15 +75,32 @@ void main()
     for (int i = 0; i < lightCount; i++) {
         Light light = lights[i];
 
-        vec3 d = light.position - v_position;
-        vec3 l = normalize(d);
-        vec3 r = reflect(-l, n);
+        if (light.type == 0) {
+            vec3 l = normalize(light.position);
 
-        float specular = pow(max(dot(r, v), 0), material.shininess);
-        float diffuse = max(dot(l, n), 0);
+            vec3 r = reflect(-l, n);
 
-        c_specular += specular * material.specular * light.specular;
-        c_diffuse += diffuse * light.diffuse * t_diffuse * material.diffuse;
+            float specular = pow(max(dot(r, v), 0), material.shininess);
+            float diffuse = max(dot(l, n), 0);
+
+            c_specular += specular * material.specular * light.specular * rougness;
+            c_diffuse += diffuse * light.diffuse * t_diffuse * material.diffuse;
+        }
+        else if (light.type == 1) {
+            vec3 d = light.position - v_position;
+            vec3 l = normalize(d);
+
+            vec3 r = reflect(-l, n);
+
+            float distance = length(d);
+            float attenuation = pow(max(1 - pow(distance / light.radius, 4), 0), 2);
+
+            float specular = pow(max(dot(r, v), 0), material.shininess);
+            float diffuse = max(dot(l, n), 0);
+
+            c_specular += attenuation * specular * material.specular * light.specular * rougness;
+            c_diffuse += attenuation * diffuse * light.diffuse * t_diffuse * material.diffuse;
+        }
     }
 
     vec3 c_shaded = c_ambient + c_diffuse + c_specular;

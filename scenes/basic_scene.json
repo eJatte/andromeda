@@ -1,0 +1,57 @@
+{
+  "entities": [
+    {
+      "position": [0.0, 0.5, 10.0],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "cube",
+      "children": []
+    },
+    {
+      "position": [-5.0, 0.5, -2.0],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/orange_prototype.json",
+      "geometry": "cube",
+      "children": []
+    },
+    {
+      "position": [0.0, 0.0, 0.0],
+      "scale": [1, 1, 1],
+      "material": "materials/white_material.json",
+      "geometry": "D:/Models/roadBike/roadBike.obj",
+      "children": []
+    },
+    {
+      "position": [0.0, 0.0, 0.0],
+      "scale": [40.0, 1.0, 40.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "plane",
+      "children": []
+    }
+  ],
+  "lights": [
+    {
+      "position": [0.65, 0.6, 0.45],
+      "color":[0.95, 0.9, 0.85],
+      "type": "directional"
+    },
+    {
+      "position": [-4, 2, 4],
+      "color":[0.8, 0.1, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [0, 2, -5],
+      "color":[0.1, 0.8, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [4, 2, 4],
+      "color":[0.1, 0.1, 0.8],
+      "type": "point",
+      "radius": 7
+    }
+  ]
+}

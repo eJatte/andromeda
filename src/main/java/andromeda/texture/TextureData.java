@@ -24,7 +24,7 @@ public class TextureData {
         var file = new File(path);
 
         STBImage.stbi_set_flip_vertically_on_load(true);
-        this.buffer = STBImage.stbi_load(file.getAbsolutePath(), w, h, channels, 4);
+        this.buffer = STBImage.stbi_load(file.getAbsolutePath(), w, h, channels, 0);
 
         if (this.buffer == null) {
             throw new IllegalArgumentException("Can't load file " + path + " " + STBImage.stbi_failure_reason());
