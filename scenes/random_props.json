@@ -1,0 +1,65 @@
+{
+  "entities": [
+    {
+      "position": [0, 0, 0],
+      "scale": [2.0, 2.0, 2.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "D:/Models/wetfloor/WetFloorSign_01_4k.gltf",
+      "name": "wjat",
+      "children": []
+    },
+    {
+      "position": [2, 0, 0],
+      "scale": [2.0, 2.0, 2.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "D:/Models/barrier/concrete_road_barrier_4k.gltf",
+      "children": []
+    },
+    {
+      "position": [4, 0, 0],
+      "scale": [2.0, 2.0, 2.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "D:/Models/barrel/barrel_stove_4k.gltf",
+      "children": []
+    },
+    {
+      "position": [6, 0, 0],
+      "scale": [2.0, 2.0, 2.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "D:/Models/chair/mid_century_lounge_chair_4k.gltf",
+      "children": []
+    },
+    {
+      "position": [0.0, 0.0, 0.0],
+      "scale": [400.0, 1.0, 400.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "plane",
+      "children": []
+    }
+  ],
+  "lights": [
+    {
+      "position": [1, 1, 1],
+      "color":[1, 1,1],
+      "type": "directional"
+    },
+    {
+      "position": [-4, 2, 4],
+      "color":[0.8, 0.1, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [0, 2, -5],
+      "color":[0.1, 0.8, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [4, 2, 4],
+      "color":[0.1, 0.1, 0.8],
+      "type": "point",
+      "radius": 7
+    }
+  ]
+}

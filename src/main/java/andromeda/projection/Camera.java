@@ -1,126 +1,77 @@
 package andromeda.projection;
 
-import andromeda.input.Input;
-import andromeda.input.KeyCode;
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import static org.joml.Math.*;
+public abstract class Camera {
+    protected Vector3f position, cameraForward, cameraUp;
 
-public class Camera {
-    private Vector3f position, targetPosition, cameraForward, targetCameraForward, cameraUp, cameraRight;
-
-    private float pitch = -5.0f, yaw = 0.0f;
-
-    private boolean mouseEnabled = false;
-
-    private int width, height;
+    protected float near, far;
 
     public Camera() {
         this.position = new Vector3f(-11.0f, 3.0f, 0.0f);
-        this.targetPosition = this.position;
-        this.targetCameraForward = getCameraForward();
-        this.cameraForward = this.targetCameraForward;
+        this.cameraForward = new Vector3f(0, 0.0f, -1.0f);
         this.cameraUp = new Vector3f(0, 1.0f, 0);
-        this.cameraRight = new Vector3f(1, 0, 0);
-    }
-
-    public void update() {
-        float speed = 0.05f;
-
-        if (Input.get().key(KeyCode.KEY_LEFT_SHIFT)) {
-            speed *= 3;
-        }
-
-        this.cameraRight = cameraForward.cross(new Vector3f(0, 1, 0), new Vector3f());
-        this.cameraUp = cameraRight.cross(cameraForward, new Vector3f());
-
-        var direction = new Vector3f(0);
-
-        if (Input.get().key(KeyCode.KEY_W))
-            direction.add(this.cameraForward);
-        if (Input.get().key(KeyCode.KEY_S))
-            direction.sub(this.cameraForward);
-
-        if (Input.get().key(KeyCode.KEY_D))
-            direction.add(this.cameraRight);
-        if (Input.get().key(KeyCode.KEY_A))
-            direction.sub(this.cameraRight);
-
-        if (Input.get().key(KeyCode.KEY_E))
-            direction.add(new Vector3f(0, 1, 0));
-        if (Input.get().key(KeyCode.KEY_Q))
-            direction.sub(new Vector3f(0, 1, 0));
-
-        if (direction.length() > 0)
-            direction.normalize().mul(speed);
-
-
-        this.targetPosition.add(direction);
-        var diffPos = this.targetPosition.sub(this.position, new Vector3f());
-        this.position.add(diffPos.mul(0.2f));
-
-        this.targetCameraForward = getCameraForward();
-
-        var diffFor = this.targetCameraForward.sub(this.cameraForward, new Vector3f());
-        this.cameraForward.add(diffFor.mul(0.2f));
-        this.cameraForward.normalize();
-    }
-
-    private Vector3f getCameraForward() {
-        var mouseDelta = mouseEnabled ? Input.get().getMouseDelta() : new Vector2f(0);
-
-        float speed = 1.4f;
-
-        var pitchDelta = -mouseDelta.y / 720.0f;
-        pitch += pitchDelta * 40.0f * speed;
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        var yawDelta = mouseDelta.x / 720.0f;
-        yaw += yawDelta * 40.0f * speed;
-
-        var front = new Vector3f(0);
-        front.x = cos(toRadians(yaw)) * cos(toRadians(pitch));
-        front.y = sin(toRadians(pitch));
-        front.z = sin(toRadians(yaw)) * cos(toRadians(pitch));
-        front.normalize();
-
-        return front;
+        this.near = 0.1f;
+        this.far = 100.0f;
     }
 
     public Matrix4f getView() {
-        return new Matrix4f().lookAt(position, position.add(cameraForward, new Vector3f()), cameraUp);
+        return new Matrix4f().lookAt(this.getPosition(), this.getPosition().add(this.getCameraForward(), new Vector3f()), this.getCameraUp());
+    }
+
+    public abstract Matrix4f getProjection();
+
+    public abstract Matrix4f getProjection(float near, float far);
+
+    public abstract Matrix4f getProjectionWH(int width, int height);
+
+    public Matrix4f getProjectionView() {
+        return this.getProjection().mul(this.getView());
+    }
+
+    public void setPosition(Vector3f position) {
+        this.position = position;
+    }
+
+    public void setCameraForward(Vector3f cameraForward) {
+        this.cameraForward = cameraForward;
+    }
+
+    public void setCameraUp(Vector3f cameraUp) {
+        this.cameraUp = cameraUp;
+    }
+
+    public void lookAtPoint(Vector3f point) {
+        var diff = point.sub(this.position, new Vector3f());
+        this.cameraForward = diff.normalize();
     }
 
     public Vector3f getPosition() {
         return this.position;
     }
 
-    public Matrix4f getProjection() {
-        return new Matrix4f().setPerspective(45.0f, (float) width / (float) height, 0.1f, 100.0f);
+    public Vector3f getCameraForward() {
+        return cameraForward;
     }
 
-    public void setMouseEnabled(boolean mouseEnabled) {
-        this.mouseEnabled = mouseEnabled;
+    public Vector3f getCameraUp() {
+        return cameraUp;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
+    public float getNear() {
+        return near;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
+    public void setNear(float near) {
+        this.near = near;
     }
 
-    public int getWidth() {
-        return width;
+    public float getFar() {
+        return far;
     }
 
-    public int getHeight() {
-        return height;
+    public void setFar(float far) {
+        this.far = far;
     }
 }

@@ -5,6 +5,8 @@ import andromeda.light.LightType;
 import andromeda.light.PointLight;
 import andromeda.material.Material;
 import andromeda.projection.Camera;
+import andromeda.util.Cascade;
+import andromeda.window.Screen;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -32,6 +34,9 @@ public class Program {
         this.program = glCreateProgram();
         glAttachShader(this.program, shader.getVertexShader());
         glAttachShader(this.program, shader.getFragmentShader());
+        if(shader.getGeometryShader() != -1) {
+            glAttachShader(this.program, shader.getGeometryShader());
+        }
         glLinkProgram(this.program);
 
         int status = glGetProgrami(this.program, GL_LINK_STATUS);
@@ -56,6 +61,17 @@ public class Program {
         glUniform1f(getUniformLocation(name), f);
     }
 
+    public void setFloat(String name, int index, float f) {
+        this.setFloat("%s[%d]".formatted(name, index), f);
+    }
+
+    public void setFloat(String name, List<Float> fs) {
+        int size = fs.size();
+        for (int i = 0; i < size; i++) {
+            setFloat(name, i, fs.get(i));
+        }
+    }
+
     public void setVec4(String name, Vector4f v) {
         glUniform4f(getUniformLocation(name), v.x, v.y, v.z, v.y);
     }
@@ -72,8 +88,29 @@ public class Program {
         glUniformMatrix4fv(getUniformLocation(name), false, mat4.get(new float[4*4]));
     }
 
+    public void setMat4(String name, int index, Matrix4f mat4) {
+        this.setMat4("%s[%d]".formatted(name, index), mat4);
+    }
+
+    public void setMat4(String name, Matrix4f[] matrix4fs) {
+        int size = matrix4fs.length;
+        for (int i = 0; i < size; i++) {
+            setMat4(name, i, matrix4fs[i]);
+        }
+    }
+
+    public void setCascades(Cascade[] cascades) {
+        int size = cascades.length;
+        for (int i = 0; i < size; i++) {
+            this.setMat4("%s[%d]".formatted("lightSpaceMatrices", i), cascades[i].lightSpaceProjection);
+            this.setFloat("%s[%d]".formatted("frustumSizes", i), cascades[i].size);
+            this.setFloat("%s[%d]".formatted("levelDistances", i), cascades[i].distance);
+        }
+        this.setInt("cascadeLevels", size);
+    }
+
     public void setCamera(Camera camera) {
-        this.setMat4("projection", camera.getProjection());
+        this.setMat4("projection", camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT));
         this.setMat4("view", camera.getView());
         this.setVec3("eyePos", camera.getPosition());
     }
@@ -114,6 +151,7 @@ public class Program {
         this.setVec3("%s.position".formatted(name), light.position);
         this.setVec3("%s.diffuse".formatted(name), light.diffuse);
         this.setVec3("%s.specular".formatted(name), light.specular);
+        this.setBool("%s.castShadows".formatted(name), light.castShadows);
 
         if (light.type() == LightType.DIRECTIONAL) {
             this.setInt("%s.type".formatted(name), 0);
@@ -145,9 +183,13 @@ public class Program {
     private static Map<String, Program> programs = new HashMap<>();
 
     public static Program loadShader(String vert_path, String frag_path) {
+        return loadShader(vert_path, frag_path, null);
+    }
+
+    public static Program loadShader(String vert_path, String frag_path, String geom_path) {
         var key = vert_path + "-" + frag_path;
         if (!programs.containsKey(key)) {
-            var shader = new Shader(vert_path, frag_path);
+            var shader = new Shader(vert_path, frag_path, geom_path);
             shader.compile();
 
             var program = new Program();

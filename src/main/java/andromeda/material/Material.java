@@ -1,8 +1,6 @@
 package andromeda.material;
 
 import andromeda.resources.MaterialRepresentation;
-import andromeda.shader.Program;
-import andromeda.texture.Texture;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.joml.Vector2f;
@@ -11,8 +9,6 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class Material {
@@ -28,17 +24,17 @@ public class Material {
     public Texture roughness_texture;
     public Texture normal_texture;
     public Vector2f texture_scale;
-    public Program program;
+    public boolean unlit = false;
+    public boolean wireFrame = false;
     public boolean isTransparent = false;
 
-    public Material(Vector3f ambient, Vector3f diffuse, Vector3f specular, float shininess, Texture diffuse_texture, Texture normal_texture, Program program) {
+    public Material(Vector3f ambient, Vector3f diffuse, Vector3f specular, float shininess, Texture diffuse_texture, Texture normal_texture) {
         this.ambient = ambient;
         this.diffuse = diffuse;
         this.specular = specular;
         this.shininess = shininess;
         this.diffuse_texture = diffuse_texture;
         this.normal_texture = normal_texture;
-        this.program = program;
         this.texture_scale = new Vector2f(1);
     }
 
@@ -49,12 +45,11 @@ public class Material {
         this.shininess = 64;
         this.diffuse_texture = null;
         this.normal_texture = null;
-        this.program = null;
         this.texture_scale = new Vector2f(1);
     }
 
     public Material(Material material) {
-        this(material.ambient, material.diffuse, material.specular, material.shininess, material.diffuse_texture, material.normal_texture, material.program);
+        this(material.ambient, material.diffuse, material.specular, material.shininess, material.diffuse_texture, material.normal_texture);
     }
 
     public static Material loadMaterial(String materialPath) {
@@ -74,9 +69,7 @@ public class Material {
             var diffuse_texture = Optional.ofNullable(material_representation.diffuse_texture).map(Texture::loadTexture).orElse(null);
             var normal_texture = Optional.ofNullable(material_representation.normal_texture).map(Texture::loadNormalTexture).orElse(null);
 
-            var program = Program.loadShader(material_representation.vertex_shader, material_representation.fragment_shader);
-
-            var material = new Material(ambient, diffuse, specular, shininess, diffuse_texture, normal_texture, program);
+            var material = new Material(ambient, diffuse, specular, shininess, diffuse_texture, normal_texture);
             material.texture_scale = texture_scale;
             return material;
         } catch (IOException e) {

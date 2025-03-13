@@ -1,0 +1,17 @@
+#version 460 core
+layout (triangles, invocations = 4) in;
+layout (triangle_strip, max_vertices = 3) out;
+
+uniform mat4x4 projection, view, model;
+
+uniform mat4x4 lightSpaceMatrices[5];
+
+void main()
+{
+    for (int i = 0; i < 3; i++) {
+        gl_Position = lightSpaceMatrices[gl_InvocationID] * gl_in[i].gl_Position;
+        gl_Layer = gl_InvocationID;
+        EmitVertex();
+    }
+    EndPrimitive();
+}

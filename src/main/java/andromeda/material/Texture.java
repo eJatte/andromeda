@@ -1,4 +1,4 @@
-package andromeda.texture;
+package andromeda.material;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +21,18 @@ public class Texture {
     public void bind(int gl_texture_location) {
         glActiveTexture(gl_texture_location);
         glBindTexture(GL_TEXTURE_2D, this.texture_id);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getTexture_id() {
+        return texture_id;
     }
 
     private static Map<String, Texture> textures = new HashMap<>();

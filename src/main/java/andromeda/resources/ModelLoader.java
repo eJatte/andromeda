@@ -1,11 +1,10 @@
 package andromeda.resources;
 
-import andromeda.entity.Entity;
 import andromeda.geometry.Geometry;
 import andromeda.geometry.Mesh;
 import andromeda.geometry.Model;
 import andromeda.material.Material;
-import andromeda.texture.Texture;
+import andromeda.material.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -15,43 +14,15 @@ import org.lwjgl.assimp.*;
 import java.nio.IntBuffer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.lwjgl.assimp.Assimp.*;
 
 public class ModelLoader {
-    public static Entity load(String path, Material material) {
-        try (AIScene aiScene = Assimp.aiImportFile(path,
-                Assimp.aiProcess_JoinIdenticalVertices
-                        | Assimp.aiProcess_Triangulate
-                        | Assimp.aiProcess_GenSmoothNormals
-        )) {
-            return loadAiSceneAsEntity(aiScene, path, material);
-        }
-    }
 
-    private static Entity loadAiSceneAsEntity(AIScene aiScene, String path, Material material) {
-        return entityFromAiNode(aiScene.mRootNode(), aiScene, path, material);
-    }
-
-    private static Entity entityFromAiNode(AINode aiNode, AIScene aiScene, String path, Material material) {
-        Matrix4f transform = convertAiMatrix(aiNode.mTransformation());
-        Model model = modelFromAiNode(aiNode, aiScene, path, material);
-        Entity entity = new Entity(model, (e) -> {
-        });
-        entity.transform().set(transform);
-
-        for (int i = 0; i < aiNode.mNumChildren(); i++) {
-            AINode childNode = AINode.create(aiNode.mChildren().get(i));
-            Entity childEntity = entityFromAiNode(childNode, aiScene, path, material);
-            entity.children().add(childEntity);
-        }
-
-        return entity;
-    }
-
-    private static Model modelFromAiNode(AINode aiNode, AIScene aiScene, String path, Material material) {
+    static Model modelFromAiNode(AINode aiNode, AIScene aiScene, String path) {
         List<AIMesh> aiMeshes = getAIMeshes(aiNode, aiScene);
 
         List<Mesh> meshes = new ArrayList<>();
@@ -62,6 +33,11 @@ public class ModelLoader {
             var vertices = getVertices(aiMesh);
             var normals = getNormals(aiMesh);
             var uvs = getUvs(aiMesh);
+
+            //to do remove hack
+            if (uvs.isEmpty()) {
+                uvs = vertices.stream().map(v -> new Vector2f(v.x, v.y)).toList();
+            }
 
             Vector3f[] vertices_array = vertices.toArray(Vector3f[]::new);
             Vector3f[] normals_array = normals.toArray(Vector3f[]::new);
@@ -75,7 +51,6 @@ public class ModelLoader {
             AIMaterial aiMaterial = AIMaterial.create(aiScene.mMaterials().get(material_index));
 
             var m = getMaterial(aiMaterial, Paths.get(path).getParent().toString());
-            m.program = material.program;
 
             if (m.isTransparent) {
                 System.out.println("Material is transparent skipping model...");
@@ -103,7 +78,7 @@ public class ModelLoader {
         return meshes;
     }
 
-    private static Matrix4f convertAiMatrix(AIMatrix4x4 aiMatrix) {
+    static Matrix4f convertAiMatrix(AIMatrix4x4 aiMatrix) {
         Matrix4f matrix = new Matrix4f();
         matrix.setTransposedFromAddress(aiMatrix.address());
         return matrix;
@@ -138,6 +113,10 @@ public class ModelLoader {
         AIVector3D.Buffer aiTextureCoords = aiMesh.mTextureCoords(0);
         List<Vector2f> uvs = new ArrayList<>();
 
+        if (aiTextureCoords == null) {
+            return Collections.emptyList();
+        }
+
         while (aiTextureCoords.remaining() > 0) {
             AIVector3D aiTexCoord = aiTextureCoords.get();
             uvs.add(new Vector2f(aiTexCoord.x(), aiTexCoord.y()));
@@ -167,11 +146,11 @@ public class ModelLoader {
 
         material.diffuse = getDiffuseColor(aiMaterial);
         material.ambient = getAmbientColor(aiMaterial);
-        if (material.ambient.x() < 0) {
+        if (material.ambient.x() <= 0) {
             material.ambient = material.diffuse;
         }
         material.specular = getSpecularColor(aiMaterial);
-        if (material.specular.x() < 0) {
+        if (material.specular.x() <= 0) {
             material.specular = material.diffuse;
         }
         material.shininess = getShininess(aiMaterial);

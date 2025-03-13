@@ -1,4 +1,4 @@
-package andromeda.texture;
+package andromeda.material;
 
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;

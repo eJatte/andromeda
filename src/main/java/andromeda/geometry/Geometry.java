@@ -1,6 +1,5 @@
 package andromeda.geometry;
 
-import andromeda.shader.Program;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -15,6 +14,11 @@ public class Geometry {
     private Vertex[] vertices = {};
     private int[] indices = {};
     private int m_vao, m_vbo, m_ebo;
+
+    public Geometry(Vector3f[] positions, int[] indices) {
+        this.vertices = Arrays.stream(positions).map(Vertex::new).toArray(Vertex[]::new);
+        this.indices = indices;
+    }
 
     public Geometry(Vector3f[] positions, Vector2f[] uvs, int[] indices) {
         this.vertices = calculateVertexData(positions, new Vector3f[]{}, uvs, indices);
@@ -65,9 +69,7 @@ public class Geometry {
         glBindVertexArray(0);
     }
 
-    public void render(Program program) {
-        program.use();
-
+    public void draw() {
         glBindVertexArray(m_vao);
         if (m_ebo == 0) {
             glDrawArrays(GL_TRIANGLES, 0, this.vertices.length);

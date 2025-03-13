@@ -37,6 +37,8 @@ public class Input {
     private Queue<Vector2f> mousePosEvents;
     private Vector2f mousePosition, mouseDelta;
 
+    private boolean mouseEnabled = false;
+
     private Input() {
         keys = new KeyState[KeyCode.KEY_LAST + 200];
         Arrays.fill(keys, KeyState.RELEASED);
@@ -71,7 +73,7 @@ public class Input {
         while (!keyEvents.isEmpty()) {
             var event = keyEvents.remove();
 
-            if(event.key > -1) {
+            if (event.key > -1) {
                 if (event.pressed && keys[event.key] == KeyState.RELEASED) {
                     keys[event.key] = KeyState.DOWN;
                 } else if (!event.pressed && keys[event.key] == KeyState.PRESSED) {
@@ -100,6 +102,14 @@ public class Input {
 
     public boolean keyDown(int key) {
         return keys[key] == KeyState.DOWN;
+    }
+
+    public boolean isMouseEnabled() {
+        return mouseEnabled;
+    }
+
+    public void setMouseEnabled(boolean mouseEnabled) {
+        this.mouseEnabled = mouseEnabled;
     }
 
     public Vector2f getMousePosition() {

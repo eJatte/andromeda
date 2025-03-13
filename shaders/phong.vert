@@ -4,6 +4,7 @@ layout (location = 1) in vec3 l_normal;
 layout (location = 2) in vec2 l_uv;
 layout (location = 3) in vec3 l_tangent;
 
+out vec3 view_position;
 out vec3 v_position;
 out vec3 v_normal;
 out vec2 v_uv;
@@ -32,6 +33,8 @@ void main() {
     v_bitangent = w_bitangent;
 
     v_uv = l_uv;
+
+    view_position = vec3(view * w_position);
 
     gl_Position = projection * view * w_position;
 }

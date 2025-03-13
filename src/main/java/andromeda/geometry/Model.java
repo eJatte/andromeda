@@ -2,6 +2,7 @@ package andromeda.geometry;
 
 import andromeda.light.Light;
 import andromeda.projection.Camera;
+import andromeda.shader.Program;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -15,12 +16,6 @@ public class Model {
 
     public Model(Mesh mesh) {
         this(List.of(mesh));
-    }
-
-    public void render(Camera camera, Matrix4f model, List<Light> lights) {
-        for (var mesh : meshes) {
-            mesh.render(camera, model, lights);
-        }
     }
 
     public List<Mesh> getMeshes() {

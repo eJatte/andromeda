@@ -1,0 +1,77 @@
+{
+  "entities": [
+    {
+      "position": [0, 1.5, 0],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "cube",
+      "name": "spinningcube",
+      "children": [
+        {
+          "position": [0, 1, 0],
+          "scale": [1, 1, 1],
+          "material": "materials/brick_material.json",
+          "geometry": "cube",
+          "children": [
+            {
+              "position": [0, 1, 0],
+              "scale": [1, 1, 1],
+              "material": "materials/brick_material.json",
+              "geometry": "cube",
+              "children": [
+                {
+                  "position": [0, 1, 0],
+                  "scale": [1, 1, 1],
+                  "material": "materials/brick_material.json",
+                  "geometry": "cube",
+                  "children": [
+                    {
+                      "position": [0, 1, 0],
+                      "scale": [1, 1, 1],
+                      "material": "materials/brick_material.json",
+                      "geometry": "cube",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "position": [0.0, 0.0, 0.0],
+      "scale": [400.0, 1.0, 400.0],
+      "material": "materials/gray_prototype.json",
+      "geometry": "plane",
+      "children": []
+    }
+  ],
+  "lights": [
+    {
+      "position": [1, 1, 1],
+      "color":[1, 1,1],
+      "castShadows": true,
+      "type": "directional"
+    },
+    {
+      "position": [-4, 2, 4],
+      "color":[0.8, 0.1, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [0, 2, -5],
+      "color":[0.1, 0.8, 0.1],
+      "type": "point",
+      "radius": 7
+    },
+    {
+      "position": [4, 2, 4],
+      "color":[0.1, 0.1, 0.8],
+      "type": "point",
+      "radius": 7
+    }
+  ]
+}
