@@ -59,11 +59,6 @@ public class SceneLoader {
     }
 
     private static int loadEntity(EntityRepresentation entityRepresentation, EcsCoordinator ecsCoordinator) {
-        int rootEntityId = loadEntity(entityRepresentation, ecsCoordinator, 0);
-        return rootEntityId;
-    }
-
-    private static int loadEntity(EntityRepresentation entityRepresentation, EcsCoordinator ecsCoordinator, int level) {
         var material = Material.loadMaterial(entityRepresentation.material);
 
         Model model = switch (entityRepresentation.geometry) {
@@ -75,7 +70,8 @@ public class SceneLoader {
         int entityId = -1;
 
         if (model == null) {
-            entityId = EcsModelLoader.load(entityRepresentation.geometry, ecsCoordinator, level);
+            var modeLoader = new ModelLoader(entityRepresentation.geometry, ecsCoordinator);
+            entityId = modeLoader.load();
         } else {
             entityId = ecsCoordinator.createEntity();
 
@@ -97,8 +93,7 @@ public class SceneLoader {
         transformSystem.setTransform(transform, entityId);
 
         for (var childRep : entityRepresentation.children) {
-            var childEntityId = loadEntity(childRep, ecsCoordinator, level + 1);
-            var childTransform = ecsCoordinator.getComponent(Transform.class, childEntityId);
+            var childEntityId = loadEntity(childRep, ecsCoordinator);
 
             transformSystem.setParent(childEntityId, entityId);
         }

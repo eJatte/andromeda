@@ -16,6 +16,10 @@ public class EcsModel implements Component {
         return meshes;
     }
 
+    public void setMeshes(List<Mesh> meshes) {
+        this.meshes = meshes;
+    }
+
     @Override
     public ComponentType componentType() {
         return ComponentType.MODEL;
