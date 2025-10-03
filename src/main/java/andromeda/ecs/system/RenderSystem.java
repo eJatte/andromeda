@@ -4,6 +4,7 @@ import andromeda.ecs.EcsCoordinator;
 import andromeda.ecs.component.*;
 import andromeda.framebuffer.DepthBufferArray;
 import andromeda.framebuffer.FrameBuffer;
+import andromeda.framebuffer.GBuffer;
 import andromeda.geometry.Geometry;
 import andromeda.geometry.Mesh;
 import andromeda.geometry.Primitives;
@@ -29,8 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.lwjgl.opengl.GL11C.*;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
+import static org.lwjgl.opengl.GL13C.*;
 import static org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30C.glBindFramebuffer;
 
@@ -42,13 +42,16 @@ public class RenderSystem extends EcsSystem {
     private TransformSystem transformSystem;
     private FrameBuffer frameBuffer;
     private FrameBuffer depthBufferCascade;
+    private GBuffer gBuffer;
     private Program defaultProgram, normalDebugProgram, unlitProgram;
+    private Program gBufferProgram, gBufferLightProgram;
     private Program shadowCascadeProgram;
     private Program renderTextureProgram;
     private Geometry quad;
 
     private static Set<Integer> renderEntities, pointLightEntities, directionalLightEntities;
     private boolean DEBUG_HIERACHY = false, DEBUG_FRUSTUM = false, DEBUG_NORMALS = false;
+    private int currentBuffer = 0;
 
     public RenderSystem(EcsCoordinator ecsCoordinator) {
         super(List.of(ComponentType.TRANSFORM), ecsCoordinator);
@@ -94,6 +97,14 @@ public class RenderSystem extends EcsSystem {
         if (Input.get().keyUp(KeyCode.KEY_N)) {
             DEBUG_NORMALS = !DEBUG_NORMALS;
         }
+        if (Input.get().keyUp(KeyCode.KEY_LEFT)) {
+            currentBuffer--;
+        }
+        if (Input.get().keyUp(KeyCode.KEY_RIGHT)) {
+            currentBuffer++;
+        }
+
+        currentBuffer = (currentBuffer + 5) % 5;
 
         render();
     }
@@ -119,12 +130,14 @@ public class RenderSystem extends EcsSystem {
         var renderTargets = getRenderTargets();
 
         var shadowCaster = getShadowCastingDirLight();
-        if(shadowCaster != null) {
+        if (shadowCaster != null) {
             cascades = getShadowCascades(camera, shadowCaster, CASCADE_LEVELS, new float[]{0.1f, 0.3f, 0.6f, 1.0f});
             this.renderShadow(renderTargets, cascades, depthBufferCascade, this.shadowCascadeProgram);
         }
 
-        this.render(renderTargets, camera, cascades, getLights(), frameBuffer);
+        this.renderGBuffer(renderTargets, camera, gBuffer);
+
+        renderDeferred(cascades, getLights(), camera, gBuffer, frameBuffer);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -132,12 +145,25 @@ public class RenderSystem extends EcsSystem {
         glDisable(GL_DEPTH_TEST);
         glViewport(0, 0, Screen.width, Screen.height);
 
-        if(this.ecsCoordinator.getSystem(PropertiesSystem.class).isPlayMode()) {
+        if (this.ecsCoordinator.getSystem(PropertiesSystem.class).isPlayMode()) {
             renderTextureProgram.use();
 
             renderTextureProgram.setInt("renderedTexture", 0);
-            frameBuffer.bindTexture(GL_TEXTURE0);
-
+            if (currentBuffer == 0)
+                frameBuffer.bindTexture(GL_TEXTURE0);
+            else if (currentBuffer == 1) {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, gBuffer.gPosition);
+            } else if (currentBuffer == 2) {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, gBuffer.gNormal);
+            } else if (currentBuffer == 3) {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, gBuffer.gColor);
+            } else if (currentBuffer == 4) {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, gBuffer.gSpecular);
+            }
             quad.draw();
         }
     }
@@ -145,7 +171,7 @@ public class RenderSystem extends EcsSystem {
     private DirectionalLight getShadowCastingDirLight() {
         for (int entity : directionalLightEntities) {
             var dir = ecsCoordinator.getComponent(DirectionalLightComponent.class, entity);
-            if(dir.castShadows) {
+            if (dir.castShadows) {
                 var light = new DirectionalLight(dir.getDirection(), dir.getColor());
                 light.castShadows = dir.castShadows;
                 return light;
@@ -171,52 +197,64 @@ public class RenderSystem extends EcsSystem {
         return lights;
     }
 
-    private void render(List<RenderTarget> renderTargets, Camera camera, Cascade[] cascades, List<Light> lights, FrameBuffer targetBuffer) {
+    private void renderGBuffer(List<RenderTarget> renderTargets, Camera camera, FrameBuffer targetBuffer) {
         targetBuffer.bind();
 
         for (var target : renderTargets) {
-            if (target.getMesh().getMaterial().unlit) {
-                this.render(target, camera, this.unlitProgram, cascades, lights);
-            } else {
-                this.render(target, camera, this.defaultProgram, cascades, lights);
-            }
-            if (this.DEBUG_NORMALS)
-                this.render(target, camera, this.normalDebugProgram, cascades, lights);
+            this.renderGBuffer(target, camera, gBufferProgram);
         }
     }
 
-    private void render(RenderTarget renderTarget, Camera camera, Program program, Cascade[] cascades, List<Light> lights) {
+    private void renderGBuffer(RenderTarget renderTarget, Camera camera, Program program) {
         var mesh = renderTarget.getMesh();
         var model = renderTarget.getTransform();
         var geometry = mesh.getGeometry();
 
         program.use();
         program.setCamera(camera);
-        program.setLights("lights", lights);
-
         program.setMaterial("material", mesh.getMaterial());
         program.setMat4("model", model);
 
-        program.setCascades(cascades);
-
-        program.setInt("shadow_map", 3);
-        depthBufferCascade.bindTexture(GL_TEXTURE3);
-
-        if (mesh.getMaterial().wireFrame) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDisable(GL_CULL_FACE);
-        }
-
         geometry.draw();
+    }
 
-        if (mesh.getMaterial().wireFrame) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glEnable(GL_CULL_FACE);
-        }
+    private void renderDeferred(Cascade[] cascades, List<Light> lights, Camera camera, GBuffer gBuffer, FrameBuffer targetBuffer) {
+        targetBuffer.bind();
+
+        gBufferLightProgram.use();
+        gBufferLightProgram.setCamera(camera);
+        gBufferLightProgram.setLights("lights", lights);
+
+        gBufferLightProgram.setCascades(cascades);
+
+
+
+        gBufferLightProgram.use();
+        gBufferLightProgram.setInt("gPosition", 0);
+        gBufferLightProgram.setInt("gNormal", 1);
+        gBufferLightProgram.setInt("gAlbedoSpec", 2);
+        gBufferLightProgram.setInt("gSpecular", 3);
+        gBufferLightProgram.setInt("shadow_map", 4);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.gPosition);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.gNormal);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.gColor);
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.gSpecular);
+
+        depthBufferCascade.bindTexture(GL_TEXTURE4);
+
+        quad.draw();
     }
 
     private Cascade[] getShadowCascades(Camera camera, DirectionalLight directionalLight, int n_levels, float[] levels) {
-        if(n_levels != levels.length) {
+        if (n_levels != levels.length) {
             throw new IllegalArgumentException("Wrong number of levels in levels array, expected %d".formatted(n_levels));
         }
 
@@ -279,9 +317,9 @@ public class RenderSystem extends EcsSystem {
     }
 
 
-
     private void initFrameBuffer() {
         frameBuffer = FrameBuffer.create(Screen.width, Screen.height);
+        gBuffer = GBuffer.create(Screen.width, Screen.height);
         int shadowMapSize = SHADOW_MAP_SIZE;
         depthBufferCascade = DepthBufferArray.create(shadowMapSize, shadowMapSize, CASCADE_LEVELS);
         quad = Primitives.quad();
@@ -292,6 +330,8 @@ public class RenderSystem extends EcsSystem {
         this.defaultProgram = Program.loadShader("shaders/phong.vert", "shaders/phong.frag");
         this.normalDebugProgram = Program.loadShader("shaders/normal_debug.vert", "shaders/normal_debug.frag", "shaders/normal_debug.geom");
         this.unlitProgram = Program.loadShader("shaders/unlit.vert", "shaders/unlit.frag");
+        this.gBufferProgram = Program.loadShader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
+        this.gBufferLightProgram = Program.loadShader("shaders/gBufferLight.vert", "shaders/gBufferLight.frag");
         this.shadowCascadeProgram = Program.loadShader("shaders/shadow_cascade.vert", "shaders/shadow_cascade.frag", "shaders/shadow_cascade.geom");
         this.renderTextureProgram = Program.loadShader("shaders/framebuffer.vert", "shaders/framebuffer.frag");
     }
