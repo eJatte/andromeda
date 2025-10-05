@@ -14,9 +14,17 @@ public class SystemManager {
 
     public void entitySignatureUpdate(int entityId, BitSet signature) {
         for (EcsSystem ecsSystem : systems.values()) {
-            var intersection = (BitSet) ecsSystem.getSignature().clone();
-            intersection.and(signature);
-            if (intersection.cardinality() == ecsSystem.getSignature().cardinality()) {
+            boolean foundMatch = false;
+            for(var systemSignature: ecsSystem.getSignature()) {
+                var intersection = (BitSet) systemSignature.clone();
+                intersection.and(signature);
+                if (intersection.cardinality() == systemSignature.cardinality()) {
+                    foundMatch = true;
+                    break;
+                }
+            }
+
+            if (foundMatch) {
                 ecsSystem.addEntity(entityId);
             } else {
                 ecsSystem.removeEntity(entityId);

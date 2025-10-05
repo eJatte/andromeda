@@ -10,22 +10,26 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class EcsSystem {
-    private BitSet signature;
+    private final Set<BitSet> signatures;
     EcsCoordinator ecsCoordinator;
     Set<Integer> entities;
 
-    public EcsSystem(List<ComponentType> signature, EcsCoordinator ecsCoordinator) {
-        this.signature = new BitSet(EntityManager.MAX_COMPONENTS);
-        for (ComponentType componentType : signature) {
-            this.signature.set(componentType.id, true);
+    public EcsSystem(List<List<ComponentType>> signatures, EcsCoordinator ecsCoordinator) {
+        this.signatures = new HashSet<>();
+        for (var signature : signatures) {
+            var bitset = new BitSet(EntityManager.MAX_COMPONENTS);
+            for (ComponentType componentType : signature) {
+                bitset.set(componentType.id, true);
+            }
+            this.signatures.add(bitset);
         }
 
         this.entities = new HashSet<>();
         this.ecsCoordinator = ecsCoordinator;
     }
 
-    public BitSet getSignature() {
-        return signature;
+    public Set<BitSet> getSignature() {
+        return signatures;
     }
 
     public void addEntity(int entityId) {

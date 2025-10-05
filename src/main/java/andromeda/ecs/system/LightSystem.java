@@ -12,7 +12,7 @@ import java.util.List;
 public class LightSystem extends EcsSystem {
 
     public LightSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM, ComponentType.DIRECTIONAL_LIGHT), ecsCoordinator);
+        super(List.of(List.of(ComponentType.TRANSFORM, ComponentType.DIRECTIONAL_LIGHT)), ecsCoordinator);
     }
 
     private Vector3f point = new Vector3f(1).normalize();

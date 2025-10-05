@@ -19,7 +19,7 @@ public class RandomObjectsSystem extends EcsSystem {
 
 
     public RandomObjectsSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(), ecsCoordinator);
+        super(List.of(List.of()), ecsCoordinator);
     }
 
     @Override

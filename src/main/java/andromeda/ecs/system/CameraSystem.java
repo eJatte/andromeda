@@ -18,7 +18,7 @@ public class CameraSystem extends EcsSystem {
     private int currentMainCamera = -1;
 
     public CameraSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM, ComponentType.CAMERA), ecsCoordinator);
+        super(List.of(List.of(ComponentType.TRANSFORM, ComponentType.CAMERA)), ecsCoordinator);
     }
 
     @Override

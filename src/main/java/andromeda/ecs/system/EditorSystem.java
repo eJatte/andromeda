@@ -29,7 +29,7 @@ public class EditorSystem extends EcsSystem {
     private TransformSystem transformSystem;
 
     public EditorSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM), ecsCoordinator);
+        super(List.of(List.of(ComponentType.TRANSFORM)), ecsCoordinator);
     }
 
     @Override

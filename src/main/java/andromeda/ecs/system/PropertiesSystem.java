@@ -12,7 +12,7 @@ public class PropertiesSystem extends EcsSystem {
     private boolean PLAY_MODE = false;
 
     public PropertiesSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(), ecsCoordinator);
+        super(List.of(List.of()), ecsCoordinator);
     }
 
     @Override

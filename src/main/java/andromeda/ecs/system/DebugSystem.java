@@ -23,7 +23,7 @@ public class DebugSystem extends EcsSystem {
     private Map<DebugType, Queue<Integer>> disabledDebugEntities;
 
     public DebugSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(), ecsCoordinator);
+        super(List.of(List.of()), ecsCoordinator);
         enabledDebugEntities = new HashMap<>();
         enabledDebugEntities.put(DebugType.Frustum, new HashSet<>());
         enabledDebugEntities.put(DebugType.Point, new HashSet<>());

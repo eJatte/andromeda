@@ -29,7 +29,7 @@ public class TransformSystem extends EcsSystem {
     private Map<Integer, Node> graph;
 
     public TransformSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM), ecsCoordinator);
+        super(List.of(List.of(ComponentType.TRANSFORM)), ecsCoordinator);
         graph = new HashMap<>();
     }
 
