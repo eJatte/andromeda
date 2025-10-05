@@ -21,6 +21,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Set;
 
 public class EditorSystem extends EcsSystem {
 
@@ -29,7 +30,7 @@ public class EditorSystem extends EcsSystem {
     private TransformSystem transformSystem;
 
     public EditorSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of(ComponentType.TRANSFORM)), ecsCoordinator);
+        super(ecsCoordinator);
     }
 
     @Override
@@ -37,6 +38,11 @@ public class EditorSystem extends EcsSystem {
         this.renderSystem = this.ecsCoordinator.getSystem(RenderSystem.class);
         this.cameraSystem = this.ecsCoordinator.getSystem(CameraSystem.class);
         this.transformSystem = this.ecsCoordinator.getSystem(TransformSystem.class);
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of(ComponentSignature.of(ComponentType.TRANSFORM));
     }
 
     @Override

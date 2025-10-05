@@ -53,34 +53,41 @@ public class RenderSystem extends EcsSystem {
     private int currentBuffer = 0;
 
     public RenderSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of(ComponentType.TRANSFORM, ComponentType.MODEL), List.of(ComponentType.TRANSFORM, ComponentType.POINT_LIGHT), List.of(ComponentType.TRANSFORM, ComponentType.DIRECTIONAL_LIGHT)), ecsCoordinator);
+        super(ecsCoordinator);
         renderEntities = new HashSet<>();
         pointLightEntities = new HashSet<>();
         directionalLightEntities = new HashSet<>();
     }
 
     @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of(ComponentSignature.of(ComponentType.MODEL), ComponentSignature.of(ComponentType.POINT_LIGHT), ComponentSignature.of(ComponentType.DIRECTIONAL_LIGHT));
+    }
+
+    @Override
     public void addEntity(int entityId) {
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.MODEL.id)) {
+        var entitySignature = ecsCoordinator.getSignature(entityId);
+        if (entitySignature.has(ComponentType.MODEL)) {
             renderEntities.add(entityId);
         }
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.POINT_LIGHT.id)) {
+        if (entitySignature.has(ComponentType.POINT_LIGHT)) {
             pointLightEntities.add(entityId);
         }
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.DIRECTIONAL_LIGHT.id)) {
+        if (entitySignature.has(ComponentType.DIRECTIONAL_LIGHT)) {
             directionalLightEntities.add(entityId);
         }
     }
 
     @Override
     public void removeEntity(int entityId) {
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.MODEL.id)) {
+        var entitySignature = ecsCoordinator.getSignature(entityId);
+        if (entitySignature.has(ComponentType.MODEL)) {
             renderEntities.remove(entityId);
         }
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.POINT_LIGHT.id)) {
+        if (entitySignature.has(ComponentType.POINT_LIGHT)) {
             pointLightEntities.remove(entityId);
         }
-        if (ecsCoordinator.getSignature(entityId).get(ComponentType.DIRECTIONAL_LIGHT.id)) {
+        if (entitySignature.has(ComponentType.DIRECTIONAL_LIGHT)) {
             directionalLightEntities.remove(entityId);
         }
     }

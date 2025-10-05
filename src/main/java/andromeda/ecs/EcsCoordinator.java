@@ -58,7 +58,7 @@ public class EcsCoordinator {
 
     public <T extends Component> T addComponent(Class<T> clazz, int entityId) {
         var component = componentManager.addComponent(clazz, entityId);
-        entityManager.getSignature(entityId).set(component.componentType().id);
+        entityManager.getSignature(entityId).set(component.componentType());
         systemManager.entitySignatureUpdate(entityId, entityManager.getSignature(entityId));
         return component;
     }
@@ -67,7 +67,7 @@ public class EcsCoordinator {
         return entityManager.getEntities();
     }
 
-    public BitSet getSignature(int entityId) {
+    public ComponentSignature getSignature(int entityId) {
         return entityManager.getSignature(entityId);
     }
 

@@ -23,7 +23,7 @@ public class DebugSystem extends EcsSystem {
     private Map<DebugType, Queue<Integer>> disabledDebugEntities;
 
     public DebugSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of()), ecsCoordinator);
+        super(ecsCoordinator);
         enabledDebugEntities = new HashMap<>();
         enabledDebugEntities.put(DebugType.Frustum, new HashSet<>());
         enabledDebugEntities.put(DebugType.Point, new HashSet<>());
@@ -31,6 +31,11 @@ public class DebugSystem extends EcsSystem {
         disabledDebugEntities = new HashMap<>();
         disabledDebugEntities.put(DebugType.Frustum, new LinkedList<>());
         disabledDebugEntities.put(DebugType.Point, new LinkedList<>());
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of();
     }
 
     @Override

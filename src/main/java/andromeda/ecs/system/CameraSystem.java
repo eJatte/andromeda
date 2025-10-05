@@ -11,6 +11,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.joml.Math.*;
 
@@ -18,7 +19,12 @@ public class CameraSystem extends EcsSystem {
     private int currentMainCamera = -1;
 
     public CameraSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of(ComponentType.TRANSFORM, ComponentType.CAMERA)), ecsCoordinator);
+        super(ecsCoordinator);
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of(ComponentSignature.of(ComponentType.CAMERA));
     }
 
     @Override

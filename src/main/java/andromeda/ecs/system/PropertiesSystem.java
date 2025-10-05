@@ -5,6 +5,7 @@ import andromeda.input.Input;
 import andromeda.input.KeyCode;
 
 import java.util.List;
+import java.util.Set;
 
 public class PropertiesSystem extends EcsSystem {
 
@@ -12,12 +13,17 @@ public class PropertiesSystem extends EcsSystem {
     private boolean PLAY_MODE = false;
 
     public PropertiesSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of()), ecsCoordinator);
+        super(ecsCoordinator);
     }
 
     @Override
     public void init() {
 
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of();
     }
 
     @Override

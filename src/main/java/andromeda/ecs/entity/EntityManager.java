@@ -1,19 +1,21 @@
 package andromeda.ecs.entity;
 
+import andromeda.ecs.system.ComponentSignature;
+
 import java.util.*;
 
 public class EntityManager {
     public static int MAX_ENTITIES = 5000;
     public static int MAX_COMPONENTS = 32;
 
-    private BitSet[] signatures;
+    private ComponentSignature[] signatures;
 
     private Queue<Integer> availableIds;
 
     private Set<Integer> entities;
 
     public EntityManager() {
-        signatures = new BitSet[MAX_ENTITIES];
+        signatures = new ComponentSignature[MAX_ENTITIES];
         availableIds = new LinkedList<>();
         entities = new HashSet<>();
         for (int i = 0; i < MAX_ENTITIES; i++) {
@@ -25,14 +27,14 @@ public class EntityManager {
         return entities;
     }
 
-    public BitSet getSignature(int entityId) {
+    public ComponentSignature getSignature(int entityId) {
         return signatures[entityId];
     }
 
     public int createEntity() {
         if (!availableIds.isEmpty()) {
             var entityId = availableIds.remove();
-            signatures[entityId] = new BitSet(MAX_COMPONENTS);
+            signatures[entityId] = ComponentSignature.of();
             entities.add(entityId);
             return entityId;
         } else {

@@ -7,10 +7,7 @@ import imgui.extension.imguizmo.ImGuizmo;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransformSystem extends EcsSystem {
 
@@ -29,7 +26,7 @@ public class TransformSystem extends EcsSystem {
     private Map<Integer, Node> graph;
 
     public TransformSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of(ComponentType.TRANSFORM)), ecsCoordinator);
+        super(ecsCoordinator);
         graph = new HashMap<>();
     }
 
@@ -75,6 +72,11 @@ public class TransformSystem extends EcsSystem {
     public void removeEntity(int entityId) {
         super.removeEntity(entityId);
 
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of(ComponentSignature.of(ComponentType.TRANSFORM));
     }
 
     @Override

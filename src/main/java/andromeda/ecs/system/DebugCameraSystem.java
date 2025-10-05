@@ -13,6 +13,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Set;
 
 public class DebugCameraSystem extends EcsSystem {
 
@@ -22,8 +23,10 @@ public class DebugCameraSystem extends EcsSystem {
     private boolean inDebug = false;
 
     public DebugCameraSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of()), ecsCoordinator);
+        super(ecsCoordinator);
     }
+
+
 
     @Override
     public void update() {
@@ -50,6 +53,11 @@ public class DebugCameraSystem extends EcsSystem {
         CameraComponent cameraComponent = ecsCoordinator.addComponent(CameraComponent.class, debugCamera);
 
         initDebug();
+    }
+
+    @Override
+    public Set<ComponentSignature> getSignatures() {
+        return Set.of();
     }
 
     private void initDebug() {

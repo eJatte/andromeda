@@ -12,19 +12,9 @@ public class SystemManager {
         this.systems = new HashMap<>();
     }
 
-    public void entitySignatureUpdate(int entityId, BitSet signature) {
+    public void entitySignatureUpdate(int entityId, ComponentSignature signature) {
         for (EcsSystem ecsSystem : systems.values()) {
-            boolean foundMatch = false;
-            for(var systemSignature: ecsSystem.getSignature()) {
-                var intersection = (BitSet) systemSignature.clone();
-                intersection.and(signature);
-                if (intersection.cardinality() == systemSignature.cardinality()) {
-                    foundMatch = true;
-                    break;
-                }
-            }
-
-            if (foundMatch) {
+            if (ecsSystem.getSignatures().contains(signature)) {
                 ecsSystem.addEntity(entityId);
             } else {
                 ecsSystem.removeEntity(entityId);
