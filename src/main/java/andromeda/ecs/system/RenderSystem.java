@@ -53,7 +53,7 @@ public class RenderSystem extends EcsSystem {
     private int currentBuffer = 0;
 
     public RenderSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(List.of(ComponentType.TRANSFORM)), ecsCoordinator);
+        super(List.of(List.of(ComponentType.TRANSFORM, ComponentType.MODEL), List.of(ComponentType.TRANSFORM, ComponentType.POINT_LIGHT), List.of(ComponentType.TRANSFORM, ComponentType.DIRECTIONAL_LIGHT)), ecsCoordinator);
         renderEntities = new HashSet<>();
         pointLightEntities = new HashSet<>();
         directionalLightEntities = new HashSet<>();
