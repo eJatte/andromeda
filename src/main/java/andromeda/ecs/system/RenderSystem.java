@@ -1,6 +1,6 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.*;
 import andromeda.framebuffer.DepthBufferArray;
 import andromeda.framebuffer.FrameBuffer;
@@ -52,8 +52,8 @@ public class RenderSystem extends EcsSystem {
     private boolean DEBUG_HIERACHY = false, DEBUG_FRUSTUM = false, DEBUG_NORMALS = false;
     private int currentBuffer = 0;
 
-    public RenderSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public RenderSystem(Ecs ecs) {
+        super(ecs);
         renderEntities = new HashSet<>();
         pointLightEntities = new HashSet<>();
         directionalLightEntities = new HashSet<>();
@@ -66,7 +66,7 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public void addEntity(int entityId) {
-        var entitySignature = ecsCoordinator.getSignature(entityId);
+        var entitySignature = ecs.getSignature(entityId);
         if (entitySignature.has(ComponentType.MODEL)) {
             renderEntities.add(entityId);
         }
@@ -80,7 +80,7 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public void removeEntity(int entityId) {
-        var entitySignature = ecsCoordinator.getSignature(entityId);
+        var entitySignature = ecs.getSignature(entityId);
         if (entitySignature.has(ComponentType.MODEL)) {
             renderEntities.remove(entityId);
         }
@@ -117,8 +117,8 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public void init() {
-        cameraSystem = ecsCoordinator.getSystem(CameraSystem.class);
-        transformSystem = ecsCoordinator.getSystem(TransformSystem.class);
+        cameraSystem = ecs.getSystem(CameraSystem.class);
+        transformSystem = ecs.getSystem(TransformSystem.class);
 
         initFrameBuffer();
         initShaders();
@@ -151,7 +151,7 @@ public class RenderSystem extends EcsSystem {
         glDisable(GL_DEPTH_TEST);
         glViewport(0, 0, Screen.width, Screen.height);
 
-        if (this.ecsCoordinator.getSystem(PropertiesSystem.class).isPlayMode()) {
+        if (this.ecs.getSystem(PropertiesSystem.class).isPlayMode()) {
             renderTextureProgram.use();
 
             renderTextureProgram.setInt("renderedTexture", 0);
@@ -176,7 +176,7 @@ public class RenderSystem extends EcsSystem {
 
     private DirectionalLight getShadowCastingDirLight() {
         for (int entity : directionalLightEntities) {
-            var dir = ecsCoordinator.getComponent(DirectionalLightComponent.class, entity);
+            var dir = ecs.getComponent(DirectionalLightComponent.class, entity);
             if (dir.castShadows) {
                 var light = new DirectionalLight(dir.getDirection(), dir.getColor());
                 light.castShadows = dir.castShadows;
@@ -189,13 +189,13 @@ public class RenderSystem extends EcsSystem {
     private List<Light> getLights() {
         List<Light> lights = new ArrayList<>();
         for (int entity : pointLightEntities) {
-            var pointLightComponent = ecsCoordinator.getComponent(PointLightComponent.class, entity);
-            var transform = ecsCoordinator.getComponent(Transform.class, entity);
+            var pointLightComponent = ecs.getComponent(PointLightComponent.class, entity);
+            var transform = ecs.getComponent(Transform.class, entity);
             lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius()));
         }
 
         for (int entity : directionalLightEntities) {
-            var directionalLightComponent = ecsCoordinator.getComponent(DirectionalLightComponent.class, entity);
+            var directionalLightComponent = ecs.getComponent(DirectionalLightComponent.class, entity);
             var light = new DirectionalLight(directionalLightComponent.getDirection(), directionalLightComponent.getColor());
             light.castShadows = directionalLightComponent.castShadows;
             lights.add(light);
@@ -312,7 +312,7 @@ public class RenderSystem extends EcsSystem {
         List<RenderTarget> renderTargets = new ArrayList<>();
 
         for (var entityId : renderEntities) {
-            var model = ecsCoordinator.getComponent(EcsModel.class, entityId);
+            var model = ecs.getComponent(EcsModel.class, entityId);
             if (model != null) {
                 for (Mesh mesh : model.getMeshes()) {
                     renderTargets.add(new RenderTarget(mesh, transformSystem.getGlobalTransform(entityId)));

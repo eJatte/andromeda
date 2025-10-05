@@ -1,18 +1,16 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
-import andromeda.ecs.component.ComponentType;
-import andromeda.ecs.entity.EntityManager;
+import andromeda.ecs.Ecs;
 
 import java.util.*;
 
 public abstract class EcsSystem {
-    EcsCoordinator ecsCoordinator;
+    Ecs ecs;
     Set<Integer> entities;
 
-    public EcsSystem(EcsCoordinator ecsCoordinator) {
+    public EcsSystem(Ecs ecs) {
         this.entities = new HashSet<>();
-        this.ecsCoordinator = ecsCoordinator;
+        this.ecs = ecs;
     }
 
     public void addEntity(int entityId) {

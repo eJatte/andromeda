@@ -1,7 +1,7 @@
 package andromeda.ecs.system;
 
 import andromeda.DeltaTime;
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.*;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
@@ -29,15 +29,15 @@ public class EditorSystem extends EcsSystem {
     private CameraSystem cameraSystem;
     private TransformSystem transformSystem;
 
-    public EditorSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public EditorSystem(Ecs ecs) {
+        super(ecs);
     }
 
     @Override
     public void init() {
-        this.renderSystem = this.ecsCoordinator.getSystem(RenderSystem.class);
-        this.cameraSystem = this.ecsCoordinator.getSystem(CameraSystem.class);
-        this.transformSystem = this.ecsCoordinator.getSystem(TransformSystem.class);
+        this.renderSystem = this.ecs.getSystem(RenderSystem.class);
+        this.cameraSystem = this.ecs.getSystem(CameraSystem.class);
+        this.transformSystem = this.ecs.getSystem(TransformSystem.class);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class EditorSystem extends EcsSystem {
 
     @Override
     public void update() {
-        if (!this.ecsCoordinator.getSystem(PropertiesSystem.class).isPlayMode()) {
+        if (!this.ecs.getSystem(PropertiesSystem.class).isPlayMode()) {
             ImGui.dockSpaceOverViewport();
             ImGui.showDemoWindow();
             entitiesTab();
@@ -87,7 +87,7 @@ public class EditorSystem extends EcsSystem {
             var view = camera.getView().get(new float[16]);
             var proj = camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT).get(new float[16]);
 
-            var transform = ecsCoordinator.getComponent(Transform.class, currentEntity);
+            var transform = ecs.getComponent(Transform.class, currentEntity);
             Matrix4f parentGlobalTransform = transform.parentEntityId != -1 ? transformSystem.getGlobalTransform(transform.parentEntityId) : new Matrix4f();
             Matrix4f entityLocalTransform = transform.localTransform;
             Matrix4f entityGlobalTransform = parentGlobalTransform.mul(entityLocalTransform, new Matrix4f());
@@ -153,22 +153,22 @@ public class EditorSystem extends EcsSystem {
 
         ImGui.begin("Entity");
         if (currentEntity != -1) {
-            var transform = ecsCoordinator.getComponent(Transform.class, currentEntity);
+            var transform = ecs.getComponent(Transform.class, currentEntity);
             if (transform != null && ImGui.collapsingHeader("Transform")) {
                 handleTransformComponent(currentEntity);
             }
 
-            var model = ecsCoordinator.getComponent(EcsModel.class, currentEntity);
+            var model = ecs.getComponent(EcsModel.class, currentEntity);
             if (model != null && ImGui.collapsingHeader("Model")) {
                 handleEcsModelComponent(model);
             }
 
-            var pointlight = ecsCoordinator.getComponent(PointLightComponent.class, currentEntity);
+            var pointlight = ecs.getComponent(PointLightComponent.class, currentEntity);
             if (pointlight != null && ImGui.collapsingHeader("Point Light")) {
                 handlePointLightComponent(pointlight);
             }
 
-            var directionalLight = ecsCoordinator.getComponent(DirectionalLightComponent.class, currentEntity);
+            var directionalLight = ecs.getComponent(DirectionalLightComponent.class, currentEntity);
             if (directionalLight != null && ImGui.collapsingHeader("Direction Light")) {
                 handleDirectionalLightComponent(directionalLight);
             }

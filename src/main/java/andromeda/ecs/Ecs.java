@@ -5,16 +5,15 @@ import andromeda.ecs.entity.EntityManager;
 import andromeda.ecs.system.EcsSystem;
 import andromeda.ecs.system.*;
 
-import java.util.BitSet;
 import java.util.Collection;
 
-public class EcsCoordinator {
+public class Ecs {
 
     private final ComponentManager componentManager;
     private final EntityManager entityManager;
     private final SystemManager systemManager;
 
-    public EcsCoordinator() {
+    public Ecs() {
         componentManager = new ComponentManager();
         entityManager = new EntityManager();
         systemManager = new SystemManager();
@@ -28,13 +27,10 @@ public class EcsCoordinator {
         componentManager.registerComponent(new CameraComponent());
 
         systemManager.registerSystem(new DebugSystem(this));
-        //systemManager.registerSystem(new RandomObjectsSystem(this));
 
         systemManager.registerSystem(new TransformSystem(this));
         systemManager.registerSystem(new PropertiesSystem(this));
         systemManager.registerSystem(new RenderSystem(this));
-        //systemManager.registerSystem(new LightSystem(this));
-        //systemManager.registerSystem(new DebugCameraSystem(this));
         systemManager.registerSystem(new CameraSystem(this));
         systemManager.registerSystem(new EditorSystem(this));
 

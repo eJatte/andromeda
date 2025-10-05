@@ -1,25 +1,20 @@
 package andromeda;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.CameraComponent;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
 import andromeda.resources.SceneLoader;
 import andromeda.window.Window;
 import imgui.ImGui;
-import imgui.ImVec2;
-import imgui.flag.ImGuiConfigFlags;
-import imgui.flag.ImGuiWindowFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.opengl.GL11C.glClear;
-import static org.lwjgl.opengl.GL11C.glClearColor;
 
 public class Controller {
-    private EcsCoordinator ecsCoordinator;
+    private Ecs ecs;
     private Window window;
     protected ImGuiImplGlfw imGuiGlfw;
     protected ImGuiImplGl3 imGuiGl3;
@@ -34,14 +29,14 @@ public class Controller {
         this.imGuiGl3 = imGuiGl3;
         this.imGuiGlfw = imGuiGlfw;
 
-        this.ecsCoordinator = new EcsCoordinator();
-        ecsCoordinator.init();
+        this.ecs = new Ecs();
+        ecs.init();
 
-        cameraEntity = ecsCoordinator.createEntity();
-        CameraComponent cameraComponent = ecsCoordinator.addComponent(CameraComponent.class, cameraEntity);
+        cameraEntity = ecs.createEntity();
+        CameraComponent cameraComponent = ecs.addComponent(CameraComponent.class, cameraEntity);
         cameraComponent.setMainCamera(true);
 
-        SceneLoader.loadSceneEcs(scene_path, ecsCoordinator);
+        SceneLoader.loadSceneEcs(scene_path, ecs);
     }
 
     float[] color = new float[4];
@@ -62,7 +57,7 @@ public class Controller {
             imGuiGlfw.newFrame();
             ImGui.newFrame();
 
-            ecsCoordinator.update();
+            ecs.update();
 
             ImGui.render();
             imGuiGl3.renderDrawData(ImGui.getDrawData());

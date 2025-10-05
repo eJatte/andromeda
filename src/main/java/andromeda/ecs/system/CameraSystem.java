@@ -1,7 +1,7 @@
 package andromeda.ecs.system;
 
 import andromeda.DeltaTime;
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.CameraComponent;
 import andromeda.ecs.component.ComponentType;
 import andromeda.input.Input;
@@ -10,7 +10,6 @@ import andromeda.projection.Camera;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.joml.Math.*;
@@ -18,8 +17,8 @@ import static org.joml.Math.*;
 public class CameraSystem extends EcsSystem {
     private int currentMainCamera = -1;
 
-    public CameraSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public CameraSystem(Ecs ecs) {
+        super(ecs);
     }
 
     @Override
@@ -30,7 +29,7 @@ public class CameraSystem extends EcsSystem {
     @Override
     public void update() {
         for (var entity : this.entities) {
-            var cameraComponent = ecsCoordinator.getComponent(CameraComponent.class, entity);
+            var cameraComponent = ecs.getComponent(CameraComponent.class, entity);
             if (cameraComponent.isMainCamera()) {
                 if (currentMainCamera != entity) {
                     currentMainCamera = entity;
@@ -42,7 +41,7 @@ public class CameraSystem extends EcsSystem {
     }
 
     public Camera getCurrentMainCamera() {
-        return ecsCoordinator.getComponent(CameraComponent.class, this.currentMainCamera).getProjectionCamera();
+        return ecs.getComponent(CameraComponent.class, this.currentMainCamera).getProjectionCamera();
     }
 
     public int getCurrentMainCameraEntity() {
@@ -51,8 +50,8 @@ public class CameraSystem extends EcsSystem {
 
     public void setMainCamera(int entityId) {
         if( entityId != this.currentMainCamera) {
-            var mainCameraComponent = ecsCoordinator.getComponent(CameraComponent.class, this.currentMainCamera);
-            var newMainCameraComponent = ecsCoordinator.getComponent(CameraComponent.class, entityId);
+            var mainCameraComponent = ecs.getComponent(CameraComponent.class, this.currentMainCamera);
+            var newMainCameraComponent = ecs.getComponent(CameraComponent.class, entityId);
 
             mainCameraComponent.setMainCamera(false);
             newMainCameraComponent.setMainCamera(true);

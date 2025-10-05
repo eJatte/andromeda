@@ -1,6 +1,6 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.CameraComponent;
 import andromeda.ecs.component.EcsModel;
 import andromeda.ecs.component.Transform;
@@ -12,7 +12,6 @@ import andromeda.material.Material;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.List;
 import java.util.Set;
 
 public class DebugCameraSystem extends EcsSystem {
@@ -22,8 +21,8 @@ public class DebugCameraSystem extends EcsSystem {
     private int debugCamera, mainCamera;
     private boolean inDebug = false;
 
-    public DebugCameraSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public DebugCameraSystem(Ecs ecs) {
+        super(ecs);
     }
 
 
@@ -47,10 +46,10 @@ public class DebugCameraSystem extends EcsSystem {
 
     @Override
     public void init() {
-        cameraSystem = ecsCoordinator.getSystem(CameraSystem.class);
+        cameraSystem = ecs.getSystem(CameraSystem.class);
 
-        debugCamera = ecsCoordinator.createEntity();
-        CameraComponent cameraComponent = ecsCoordinator.addComponent(CameraComponent.class, debugCamera);
+        debugCamera = ecs.createEntity();
+        CameraComponent cameraComponent = ecs.addComponent(CameraComponent.class, debugCamera);
 
         initDebug();
     }
@@ -61,8 +60,8 @@ public class DebugCameraSystem extends EcsSystem {
     }
 
     private void initDebug() {
-        debugProjectionFrustumEntity = ecsCoordinator.createEntity();
-        var modelComponent = ecsCoordinator.addComponent(EcsModel.class, debugProjectionFrustumEntity);
+        debugProjectionFrustumEntity = ecs.createEntity();
+        var modelComponent = ecs.addComponent(EcsModel.class, debugProjectionFrustumEntity);
         var geometry = Primitives.ndcCube();
         geometry.upload();
         var material = new Material();
@@ -73,7 +72,7 @@ public class DebugCameraSystem extends EcsSystem {
     }
 
     private void calculateFrustum() {
-        var transform = ecsCoordinator.getComponent(Transform.class, debugProjectionFrustumEntity);
+        var transform = ecs.getComponent(Transform.class, debugProjectionFrustumEntity);
         var proj = cameraSystem.getCurrentMainCamera().getProjection(5, 20);
         var view = cameraSystem.getCurrentMainCamera().getView();
         var pv = proj.mul(view, new Matrix4f());
@@ -82,17 +81,17 @@ public class DebugCameraSystem extends EcsSystem {
     }
 
     private void enableDebugFrustum() {
-        var transform = ecsCoordinator.getComponent(Transform.class, debugProjectionFrustumEntity);
+        var transform = ecs.getComponent(Transform.class, debugProjectionFrustumEntity);
     }
 
     private void disableDebugFrustum() {
-        var transform = ecsCoordinator.getComponent(Transform.class, debugProjectionFrustumEntity);
+        var transform = ecs.getComponent(Transform.class, debugProjectionFrustumEntity);
     }
 
     private void enableDebugCamera() {
         mainCamera = cameraSystem.getCurrentMainCameraEntity();
-        var mainCameraComp = ecsCoordinator.getComponent(CameraComponent.class, mainCamera);
-        var debugCameraComp = ecsCoordinator.getComponent(CameraComponent.class, debugCamera);
+        var mainCameraComp = ecs.getComponent(CameraComponent.class, mainCamera);
+        var debugCameraComp = ecs.getComponent(CameraComponent.class, debugCamera);
 
         debugCameraComp.targetCameraForward = new Vector3f(mainCameraComp.targetCameraForward);
         debugCameraComp.targetPosition = new Vector3f(mainCameraComp.targetPosition);

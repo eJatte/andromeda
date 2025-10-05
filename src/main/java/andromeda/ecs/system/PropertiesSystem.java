@@ -1,10 +1,9 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
 
-import java.util.List;
 import java.util.Set;
 
 public class PropertiesSystem extends EcsSystem {
@@ -12,8 +11,8 @@ public class PropertiesSystem extends EcsSystem {
 
     private boolean PLAY_MODE = false;
 
-    public PropertiesSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public PropertiesSystem(Ecs ecs) {
+        super(ecs);
     }
 
     @Override

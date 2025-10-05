@@ -1,6 +1,6 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.ComponentType;
 import andromeda.ecs.component.Transform;
 import imgui.extension.imguizmo.ImGuizmo;
@@ -25,8 +25,8 @@ public class TransformSystem extends EcsSystem {
 
     private Map<Integer, Node> graph;
 
-    public TransformSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public TransformSystem(Ecs ecs) {
+        super(ecs);
         graph = new HashMap<>();
     }
 
@@ -35,7 +35,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public void setParent(int entityId, int parentId) {
-        var transformComp = this.ecsCoordinator.getComponent(Transform.class, entityId);
+        var transformComp = this.ecs.getComponent(Transform.class, entityId);
 
         Node node = getNode(entityId);
         if (node.parentNode != null) {
@@ -53,7 +53,7 @@ public class TransformSystem extends EcsSystem {
         super.addEntity(entityId);
 
         Node node = getNode(entityId);
-        var transformComp = this.ecsCoordinator.getComponent(Transform.class, entityId);
+        var transformComp = this.ecs.getComponent(Transform.class, entityId);
         if (transformComp.parentEntityId != -1) {
             Node parentNode = this.getNode(transformComp.parentEntityId);
             node.parentNode = parentNode;
@@ -85,7 +85,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public Matrix4f getGlobalTransform(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         Matrix4f local = transform.localTransform;
         int parentEntity = transform.parentEntityId;
         if (parentEntity != -1) {
@@ -95,7 +95,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public Vector3f getScale(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         return getScale(transform.localTransform);
     }
 
@@ -110,7 +110,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public void setScale(Vector3f scale_xyz, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         float[] translation = new float[16];
         float[] rotation = new float[16];
         float[] scale = new float[16];
@@ -126,12 +126,12 @@ public class TransformSystem extends EcsSystem {
     }
 
     public Vector3f getEulerRotation(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         return getEulerRotation(transform.localTransform);
     }
 
     public void setEulerRotation(Vector3f eulerRotation, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         float[] translation = new float[16];
         float[] rotation = new float[16];
         float[] scale = new float[16];
@@ -161,7 +161,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public Vector3f getLocalPosition(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         return getPosition(transform.localTransform);
     }
 
@@ -176,7 +176,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public void setLocalPosition(Vector3f position, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         float[] translation = new float[16];
         float[] rotation = new float[16];
         float[] scale = new float[16];
@@ -192,7 +192,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public void setTransform(Matrix4f transformMatrix, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
+        var transform = ecs.getComponent(Transform.class, entityId);
         transform.localTransform = transformMatrix;
     }
 

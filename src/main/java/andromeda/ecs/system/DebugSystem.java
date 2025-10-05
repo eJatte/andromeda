@@ -1,6 +1,6 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.EcsModel;
 import andromeda.ecs.component.Transform;
 import andromeda.geometry.Mesh;
@@ -22,8 +22,8 @@ public class DebugSystem extends EcsSystem {
     private Map<DebugType, Set<Integer>> enabledDebugEntities;
     private Map<DebugType, Queue<Integer>> disabledDebugEntities;
 
-    public DebugSystem(EcsCoordinator ecsCoordinator) {
-        super(ecsCoordinator);
+    public DebugSystem(Ecs ecs) {
+        super(ecs);
         enabledDebugEntities = new HashMap<>();
         enabledDebugEntities.put(DebugType.Frustum, new HashSet<>());
         enabledDebugEntities.put(DebugType.Point, new HashSet<>());
@@ -51,7 +51,7 @@ public class DebugSystem extends EcsSystem {
         for (var entity : enabledEntities) {
             enabledDebugEntities.get(debugType).remove(entity);
             disabledDebugEntities.get(debugType).add(entity);
-            ecsCoordinator.disableEntity(entity);
+            ecs.disableEntity(entity);
         }
     }
 
@@ -59,20 +59,20 @@ public class DebugSystem extends EcsSystem {
         if (!disabledDebugEntities.get(debugType).isEmpty()) {
             var entityId = disabledDebugEntities.get(debugType).poll();
             enabledDebugEntities.get(debugType).add(entityId);
-            ecsCoordinator.enableEntity(entityId);
+            ecs.enableEntity(entityId);
             return entityId;
         } else {
-            var entityId = ecsCoordinator.createEntity();
-            ecsCoordinator.addComponent(EcsModel.class, entityId);
+            var entityId = ecs.createEntity();
+            ecs.addComponent(EcsModel.class, entityId);
             enabledDebugEntities.get(debugType).add(entityId);
-            ecsCoordinator.enableEntity(entityId);
+            ecs.enableEntity(entityId);
             return entityId;
         }
     }
 
     public void createFrustumDebugEntity(Vector3f color, Matrix4f projection, Matrix4f view) {
         var frustumDebugEntity = this.getDebugEntity(DebugType.Frustum);
-        var modelComponent = ecsCoordinator.getComponent(EcsModel.class, frustumDebugEntity);
+        var modelComponent = ecs.getComponent(EcsModel.class, frustumDebugEntity);
         if (modelComponent.getMeshes().isEmpty()) {
             var geometry = Primitives.ndcCube();
             geometry.upload();
@@ -85,7 +85,7 @@ public class DebugSystem extends EcsSystem {
             modelComponent.getMeshes().get(0).getMaterial().diffuse = color;
         }
 
-        var transform = ecsCoordinator.getComponent(Transform.class, frustumDebugEntity);
+        var transform = ecs.getComponent(Transform.class, frustumDebugEntity);
         var pv = projection.mul(view, new Matrix4f());
         var inversePv = pv.invert(new Matrix4f());
         transform.localTransform = inversePv;
@@ -93,7 +93,7 @@ public class DebugSystem extends EcsSystem {
 
     public void createDebugPointEntity(Vector3f color, Vector3f point) {
         var debugEntity = this.getDebugEntity(DebugType.Point);
-        var modelComponent = ecsCoordinator.getComponent(EcsModel.class, debugEntity);
+        var modelComponent = ecs.getComponent(EcsModel.class, debugEntity);
         if (modelComponent.getMeshes().isEmpty()) {
             var material = new Material();
             material.diffuse = color;
@@ -107,14 +107,14 @@ public class DebugSystem extends EcsSystem {
             modelComponent.getMeshes().get(0).getMaterial().diffuse = color;
         }
 
-        var transform = ecsCoordinator.getComponent(Transform.class, debugEntity);
+        var transform = ecs.getComponent(Transform.class, debugEntity);
         transform.localTransform.translate(point);
         transform.localTransform.scale(new Vector3f(0.1f));
     }
 
     public void createDebugSphereEntity(Vector3f color, Vector3f position, float radius) {
         var debugEntity = this.getDebugEntity(DebugType.Point);
-        var modelComponent = ecsCoordinator.getComponent(EcsModel.class, debugEntity);
+        var modelComponent = ecs.getComponent(EcsModel.class, debugEntity);
         if (modelComponent.getMeshes().isEmpty()) {
             var material = new Material();
             material.diffuse = color;
@@ -129,7 +129,7 @@ public class DebugSystem extends EcsSystem {
             modelComponent.getMeshes().get(0).getMaterial().diffuse = color;
         }
 
-        var transform = ecsCoordinator.getComponent(Transform.class, debugEntity);
+        var transform = ecs.getComponent(Transform.class, debugEntity);
         transform.localTransform.translate(position);
         transform.localTransform.scale(new Vector3f(radius));
     }
