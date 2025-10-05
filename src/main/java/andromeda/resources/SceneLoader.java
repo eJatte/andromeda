@@ -11,6 +11,7 @@ import andromeda.material.Material;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.io.File;
@@ -37,11 +38,15 @@ public class SceneLoader {
             if (representation.type == LightType.DIRECTIONAL) {
                 int entity = ecs.createEntity();
 
-                ecs.getComponent(Transform.class, entity);
+                var rotation = representation.rotation;
+                Quaternionf qRotation = new Quaternionf();
+                qRotation.rotateLocalX((float)Math.toRadians(rotation[0]));
+                qRotation.rotateLocalY((float)Math.toRadians(rotation[1]));
+                qRotation.rotateLocalZ((float)Math.toRadians(rotation[2]));
+                ecs.getComponent(Transform.class, entity).localTransform.rotate(qRotation);
 
                 var dirLight = ecs.addComponent(DirectionalLightComponent.class, entity);
                 dirLight.setColor(new Vector3f(representation.color));
-                dirLight.setDirection(new Vector3f(representation.position));
                 dirLight.setCastShadows(representation.castShadows);
             } else if (representation.type == LightType.POINT) {
                 int entity = ecs.createEntity();

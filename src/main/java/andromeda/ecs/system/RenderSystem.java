@@ -176,10 +176,12 @@ public class RenderSystem extends EcsSystem {
 
     private DirectionalLight getShadowCastingDirLight() {
         for (int entity : directionalLightEntities) {
-            var dir = ecs.getComponent(DirectionalLightComponent.class, entity);
-            if (dir.castShadows) {
-                var light = new DirectionalLight(dir.getDirection(), dir.getColor());
-                light.castShadows = dir.castShadows;
+            var dirLight = ecs.getComponent(DirectionalLightComponent.class, entity);
+            var transform = ecs.getComponent(Transform.class, entity);
+            var direction = new Vector4f(0, 1,0,0).mul(transform.localTransform);
+            if (dirLight.castShadows) {
+                var light = new DirectionalLight(direction.xyz(new Vector3f()), dirLight.getColor());
+                light.castShadows = dirLight.castShadows;
                 return light;
             }
         }
@@ -196,7 +198,9 @@ public class RenderSystem extends EcsSystem {
 
         for (int entity : directionalLightEntities) {
             var directionalLightComponent = ecs.getComponent(DirectionalLightComponent.class, entity);
-            var light = new DirectionalLight(directionalLightComponent.getDirection(), directionalLightComponent.getColor());
+            var transform = ecs.getComponent(Transform.class, entity);
+            var direction = new Vector4f(0, 1,0,0).mul(transform.localTransform);
+            var light = new DirectionalLight(direction.xyz(new Vector3f()), directionalLightComponent.getColor());
             light.castShadows = directionalLightComponent.castShadows;
             lights.add(light);
         }

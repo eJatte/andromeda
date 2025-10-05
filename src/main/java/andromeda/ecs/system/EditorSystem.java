@@ -234,7 +234,6 @@ public class EditorSystem extends EcsSystem {
 
     private void handleDirectionalLightComponent(DirectionalLightComponent directionalLight) {
         directionalLight.color.set(pickColor("color", directionalLight.color));
-        directionalLight.direction.set(pickVector3f("direction", directionalLight.direction));
         directionalLight.castShadows = pickBoolean("cast shadows", directionalLight.castShadows);
     }
 
