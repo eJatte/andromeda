@@ -43,7 +43,6 @@ public class RenderSystem extends EcsSystem {
     private FrameBuffer frameBuffer;
     private FrameBuffer depthBufferCascade;
     private GBuffer gBuffer;
-    private Program defaultProgram, normalDebugProgram, unlitProgram;
     private Program gBufferProgram, gBufferLightProgram;
     private Program shadowCascadeProgram;
     private Program renderTextureProgram;
@@ -327,9 +326,6 @@ public class RenderSystem extends EcsSystem {
     }
 
     private void initShaders() {
-        this.defaultProgram = Program.loadShader("shaders/phong.vert", "shaders/phong.frag");
-        this.normalDebugProgram = Program.loadShader("shaders/normal_debug.vert", "shaders/normal_debug.frag", "shaders/normal_debug.geom");
-        this.unlitProgram = Program.loadShader("shaders/unlit.vert", "shaders/unlit.frag");
         this.gBufferProgram = Program.loadShader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
         this.gBufferLightProgram = Program.loadShader("shaders/gBufferLight.vert", "shaders/gBufferLight.frag");
         this.shadowCascadeProgram = Program.loadShader("shaders/shadow_cascade.vert", "shaders/shadow_cascade.frag", "shaders/shadow_cascade.geom");
