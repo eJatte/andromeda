@@ -1,7 +1,8 @@
 package andromeda.ecs.system;
 
+import andromeda.Controller;
 import andromeda.DeltaTime;
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.*;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
@@ -20,7 +21,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class EditorSystem extends EcsSystem {
 
@@ -28,28 +31,50 @@ public class EditorSystem extends EcsSystem {
     private CameraSystem cameraSystem;
     private TransformSystem transformSystem;
 
-    public EditorSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM), ecsCoordinator);
+    public EditorSystem(Ecs ecs) {
+        super(ecs);
     }
 
     @Override
     public void init() {
-        this.renderSystem = this.ecsCoordinator.getSystem(RenderSystem.class);
-        this.cameraSystem = this.ecsCoordinator.getSystem(CameraSystem.class);
-        this.transformSystem = this.ecsCoordinator.getSystem(TransformSystem.class);
+        this.renderSystem = this.ecs.getSystem(RenderSystem.class);
+        this.cameraSystem = this.ecs.getSystem(CameraSystem.class);
+        this.transformSystem = this.ecs.getSystem(TransformSystem.class);
+    }
+
+    @Override
+    public Set<Signature> getSignatures() {
+        return Set.of(Signature.of(ComponentType.TRANSFORM));
     }
 
     @Override
     public void update() {
-        if (!this.ecsCoordinator.getSystem(PropertiesSystem.class).isPlayMode()) {
+        if (!this.ecs.getSystem(PropertiesSystem.class).isPlayMode()) {
             ImGui.dockSpaceOverViewport();
             ImGui.showDemoWindow();
-            entitiesTab();
+
             viewportTab();
+
+            if (!Controller.MOUSE_ENABLED)
+                ImGui.beginDisabled();
+
+            entitiesTab();
             performanceTab();
+
+            if (!Controller.MOUSE_ENABLED)
+                ImGui.endDisabled();
         } else {
             Screen.VIEWPORT_WIDTH = Screen.width;
             Screen.VIEWPORT_HEIGHT = Screen.height;
+        }
+    }
+
+    @Override
+    public void removeEntity(int entityId) {
+        super.removeEntity(entityId);
+        if (selectedEntityId == entityId) {
+            selectedEntityId = -1;
+            currentEntity = -1;
         }
     }
 
@@ -81,15 +106,15 @@ public class EditorSystem extends EcsSystem {
             var view = camera.getView().get(new float[16]);
             var proj = camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT).get(new float[16]);
 
-            var transform = ecsCoordinator.getComponent(Transform.class, currentEntity);
-            Matrix4f parentGlobalTransform = transform.parentEntityId != -1 ? transformSystem.getGlobalTransform(transform.parentEntityId) : new Matrix4f();
-            Matrix4f entityLocalTransform = transform.localTransform;
+            var transform = ecs.getComponent(Transform.class, currentEntity);
+            Matrix4f parentGlobalTransform = transform.getParentEntityId() != -1 ? transformSystem.getGlobalTransform(transform.getParentEntityId()) : new Matrix4f();
+            Matrix4f entityLocalTransform = transform.getLocalTransform();
             Matrix4f entityGlobalTransform = parentGlobalTransform.mul(entityLocalTransform, new Matrix4f());
             float[] matrix = entityGlobalTransform.get(new float[16]);
 
             ImGuizmo.manipulate(view, proj, operation, Mode.WORLD, matrix);
             Matrix4f transformed = new Matrix4f().set(matrix);
-            transform.localTransform = parentGlobalTransform.invert(new Matrix4f()).mul(transformed);
+            transform.setLocalTransform(parentGlobalTransform.invert(new Matrix4f()).mul(transformed));
         }
 
         ImGui.end();
@@ -141,34 +166,75 @@ public class EditorSystem extends EcsSystem {
 
     private void entitiesTab() {
         ImGui.begin("Scene Hierarchy");
+
+        ImGui.separatorText("Entities");
+        ImGui.beginChild("childEntities", new ImVec2(ImGui.getContentRegionAvail().x,ImGui.getContentRegionAvail().y * 0.8f ));
         handleEntitiesTree();
+        ImGui.endChild();
+
+        ImGui.separator();
+        if(ImGui.button("Create Entity")) {
+            ecs.createEntity();
+        }
+        ImGui.sameLine();
+        if(ImGui.button("Delete Entity")) {
+            ecs.destroyEntity(currentEntity);
+        }
         ImGui.end();
+
         currentEntity = selectedEntityId;
 
         ImGui.begin("Entity");
         if (currentEntity != -1) {
-            var transform = ecsCoordinator.getComponent(Transform.class, currentEntity);
+            var transform = ecs.getComponent(Transform.class, currentEntity);
             if (transform != null && ImGui.collapsingHeader("Transform")) {
                 handleTransformComponent(currentEntity);
             }
 
-            var model = ecsCoordinator.getComponent(EcsModel.class, currentEntity);
+            var model = ecs.getComponent(EcsModel.class, currentEntity);
             if (model != null && ImGui.collapsingHeader("Model")) {
                 handleEcsModelComponent(model);
             }
 
-            var pointlight = ecsCoordinator.getComponent(PointLightComponent.class, currentEntity);
+            var pointlight = ecs.getComponent(PointLightComponent.class, currentEntity);
             if (pointlight != null && ImGui.collapsingHeader("Point Light")) {
                 handlePointLightComponent(pointlight);
             }
 
-            var directionalLight = ecsCoordinator.getComponent(DirectionalLightComponent.class, currentEntity);
+            var directionalLight = ecs.getComponent(DirectionalLightComponent.class, currentEntity);
             if (directionalLight != null && ImGui.collapsingHeader("Direction Light")) {
                 handleDirectionalLightComponent(directionalLight);
             }
+
+            var fpsCameraComponent = ecs.getComponent(FpsControl.class, currentEntity);
+            if (fpsCameraComponent != null && ImGui.collapsingHeader("FPS Camera")) {
+                handleFpsCameraComponent(fpsCameraComponent);
+            }
+
+            handleAddComponent(currentEntity);
         }
 
         ImGui.end();
+    }
+
+    private void handleAddComponent(int entityId) {
+        Collection<Component> components = ecs.getComponents();
+
+        if (ImGui.button("Add Component")) {
+            ImGui.openPopup("add_component_popup");
+        }
+
+        if(ImGui.beginPopup("add_component_popup")) {
+
+            ImGui.separatorText("Components");
+            for(Component component : components) {
+                if(ImGui.selectable(component.getClass().getSimpleName())){
+                    ecs.addComponent(component.getClass(), entityId);
+                }
+            }
+
+            ImGui.endPopup();
+        }
     }
 
     private void handleEntitiesTree() {
@@ -190,7 +256,11 @@ public class EditorSystem extends EcsSystem {
             flags |= ImGuiTreeNodeFlags.Selected;
         }
 
-        boolean open = ImGui.treeNodeEx(Integer.toString(node.entityId), flags, "entity_" + node.entityId);
+        String name = ecs.getComponent(Transform.class, node.entityId).getName();
+
+        name = name == null ? "entity_" + node.entityId : name;
+
+        boolean open = ImGui.treeNodeEx(Integer.toString(node.entityId), flags, name);
 
         if (ImGui.isItemClicked()) {
             selectedEntityId = selectedEntityId == node.entityId ? -1 : node.entityId;
@@ -205,9 +275,19 @@ public class EditorSystem extends EcsSystem {
     }
 
     private void handleTransformComponent(int entityId) {
-        transformSystem.setLocalPosition(new Vector3f(pickVector3f("position", transformSystem.getLocalPosition(entityId))), entityId);
-        transformSystem.setScale(new Vector3f(pickVector3f("scale", transformSystem.getScale(entityId))), entityId);
-        transformSystem.setEulerRotation(new Vector3f(pickVector3f("rotation", transformSystem.getEulerRotation(entityId))), entityId);
+        Transform transform = this.ecs.getComponent(Transform.class, entityId);
+
+        Vector3f scale = new Vector3f(pickVector3f("scale", transform.getScale()));
+        transform.setScale(scale);
+
+        Vector3f position = new Vector3f(pickVector3f("position", transform.getPosition()));
+        transform.setPosition(position);
+
+        Vector3f curRotation = transform.getEulerRotation();
+        Vector3f newRotation = new Vector3f(pickVector3f("rotation", curRotation));
+        Vector3f diff = newRotation.sub(curRotation);
+        if (diff.length() > 0)
+            transform.rotateEuler(diff);
     }
 
     private void handleEcsModelComponent(EcsModel model) {
@@ -228,8 +308,14 @@ public class EditorSystem extends EcsSystem {
 
     private void handleDirectionalLightComponent(DirectionalLightComponent directionalLight) {
         directionalLight.color.set(pickColor("color", directionalLight.color));
-        directionalLight.direction.set(pickVector3f("direction", directionalLight.direction));
         directionalLight.castShadows = pickBoolean("cast shadows", directionalLight.castShadows);
+    }
+
+    private void handleFpsCameraComponent(FpsControl fpsControl) {
+        fpsControl.movementSpeed = pickFloatSlider("M Speed", fpsControl.movementSpeed);
+        fpsControl.movementSmoothing = pickFloatSlider("M Smoothing", fpsControl.movementSmoothing);
+        fpsControl.rotationSpeed = pickFloatSlider("R Speed", fpsControl.rotationSpeed);
+        fpsControl.rotationSmoothing = pickFloatSlider("R Smoothing", fpsControl.rotationSmoothing);
     }
 
     private void handleMaterial(Material material) {
@@ -274,6 +360,16 @@ public class EditorSystem extends EcsSystem {
     private float pickFloat(String name, float original, float speed) {
         float[] f = new float[]{original};
         ImGui.dragFloat(name, f, speed);
+        return f[0];
+    }
+
+    private float pickFloatSlider(String name, float original) {
+        return pickFloatSlider(name, original, 0, 1);
+    }
+
+    private float pickFloatSlider(String name, float original, float min, float max) {
+        float[] f = new float[]{original};
+        ImGui.sliderFloat(name, f, min, max);
         return f[0];
     }
 

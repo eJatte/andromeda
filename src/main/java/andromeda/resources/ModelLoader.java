@@ -1,7 +1,8 @@
 package andromeda.resources;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.EcsModel;
+import andromeda.ecs.component.Transform;
 import andromeda.ecs.system.TransformSystem;
 import andromeda.geometry.Geometry;
 import andromeda.geometry.Mesh;
@@ -16,13 +17,13 @@ import java.util.*;
 public class ModelLoader {
 
     private final String modelPath;
-    private final EcsCoordinator ecsCoordinator;
+    private final Ecs ecs;
     private Material[] materials;
     private Mesh[] meshes;
 
-    public ModelLoader(String modelPath, EcsCoordinator ecsCoordinator) {
+    public ModelLoader(String modelPath, Ecs ecs) {
         this.modelPath = modelPath;
-        this.ecsCoordinator = ecsCoordinator;
+        this.ecs = ecs;
     }
 
     public int load() {
@@ -44,19 +45,20 @@ public class ModelLoader {
     private int loadModels(SerializableModel[] s_models) {
         int[] entities = new int[s_models.length];
 
-        var transformSystem = ecsCoordinator.getSystem(TransformSystem.class);
+        var transformSystem = ecs.getSystem(TransformSystem.class);
 
         for (int i = 0; i < entities.length; i++) {
             SerializableModel sModel = s_models[i];
             Model model = serializableModelToModel(sModel);
-            int entityId = ecsCoordinator.createEntity();
+            int entityId = ecs.createEntity();
 
             if (!model.getMeshes().isEmpty()) {
-                var modelComponent = ecsCoordinator.addComponent(EcsModel.class, entityId);
+                var modelComponent = ecs.addComponent(EcsModel.class, entityId);
                 modelComponent.setMeshes(model.getMeshes());
             }
-
-            transformSystem.setTransform(model.getTransform(), entityId);
+            Transform transform = ecs.getComponent(Transform.class, entityId);
+            transform.setLocalTransform(model.getTransform());
+            transform.setName(sModel.name());
 
             entities[i] = entityId;
         }

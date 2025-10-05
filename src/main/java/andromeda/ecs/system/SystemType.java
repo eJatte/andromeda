@@ -1,5 +1,5 @@
 package andromeda.ecs.system;
 
 public enum SystemType {
-    LOOP, RENDER, RENDER_SHADOW
+    PHYSICS, LOOP, RENDER, RENDER_SHADOW
 }

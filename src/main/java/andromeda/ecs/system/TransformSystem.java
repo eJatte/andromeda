@@ -1,16 +1,13 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.ComponentType;
 import andromeda.ecs.component.Transform;
-import imgui.extension.imguizmo.ImGuizmo;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransformSystem extends EcsSystem {
 
@@ -28,8 +25,8 @@ public class TransformSystem extends EcsSystem {
 
     private Map<Integer, Node> graph;
 
-    public TransformSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM), ecsCoordinator);
+    public TransformSystem(Ecs ecs) {
+        super(ecs);
         graph = new HashMap<>();
     }
 
@@ -38,7 +35,7 @@ public class TransformSystem extends EcsSystem {
     }
 
     public void setParent(int entityId, int parentId) {
-        var transformComp = this.ecsCoordinator.getComponent(Transform.class, entityId);
+        var transformComp = this.ecs.getComponent(Transform.class, entityId);
 
         Node node = getNode(entityId);
         if (node.parentNode != null) {
@@ -48,19 +45,36 @@ public class TransformSystem extends EcsSystem {
         Node parentNode = getNode(parentId);
         parentNode.children.add(node);
         node.parentNode = parentNode;
-        transformComp.parentEntityId = parentId;
+        transformComp.setParentEntityId(parentId);
     }
 
     @Override
-    public void addEntity(int entityId) {
-        super.addEntity(entityId);
+    public void addEntity(Signature signature, int entityId) {
+        if (!getEntities(signature).contains(entityId)) {
+            super.addEntity(signature, entityId);
 
+            Node node = getNode(entityId);
+            var transformComp = this.ecs.getComponent(Transform.class, entityId);
+            if (transformComp.getParentEntityId() != -1) {
+                Node parentNode = this.getNode(transformComp.getParentEntityId());
+                node.parentNode = parentNode;
+                parentNode.children.add(node);
+            }
+        }
+    }
+
+    @Override
+    public void removeEntity(int entityId) {
+        super.removeEntity(entityId);
         Node node = getNode(entityId);
-        var transformComp = this.ecsCoordinator.getComponent(Transform.class, entityId);
-        if (transformComp.parentEntityId != -1) {
-            Node parentNode = this.getNode(transformComp.parentEntityId);
-            node.parentNode = parentNode;
-            parentNode.children.add(node);
+
+        for (Node child : new ArrayList<>(node.children)) {
+            ecs.destroyEntity(child.entityId);
+        }
+
+        removeNode(entityId);
+        if (node.parentNode != null) {
+            node.parentNode.children.remove(node);
         }
     }
 
@@ -71,127 +85,32 @@ public class TransformSystem extends EcsSystem {
         return graph.get(entityId);
     }
 
-    @Override
-    public void removeEntity(int entityId) {
-        super.removeEntity(entityId);
+    private void removeNode(int entityId) {
+        graph.remove(entityId);
+    }
 
+    @Override
+    public Set<Signature> getSignatures() {
+        return Set.of(Signature.of(ComponentType.TRANSFORM));
     }
 
     @Override
     public void update() {
-
     }
 
     public Matrix4f getGlobalTransform(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        Matrix4f local = transform.localTransform;
-        int parentEntity = transform.parentEntityId;
+        var transform = ecs.getComponent(Transform.class, entityId);
+        Matrix4f local = transform.getLocalTransform();
+        int parentEntity = transform.getParentEntityId();
         if (parentEntity != -1) {
             return getGlobalTransform(parentEntity).mul(local, new Matrix4f());
         }
         return local;
     }
 
-    public Vector3f getScale(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        return getScale(transform.localTransform);
-    }
-
-    private Vector3f getScale(Matrix4f transform) {
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-
-        ImGuizmo.decomposeMatrixToComponents(transform.get(new float[16]), translation, rotation, scale);
-
-        return new Vector3f(scale[0], scale[1], scale[2]);
-    }
-
-    public void setScale(Vector3f scale_xyz, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-        float[] matrix = transform.localTransform.get(new float[16]);
-
-        ImGuizmo.decomposeMatrixToComponents(matrix, translation, rotation, scale);
-        scale[0] = scale_xyz.x;
-        scale[1] = scale_xyz.y;
-        scale[2] = scale_xyz.z;
-        ImGuizmo.recomposeMatrixFromComponents(translation, rotation, scale, matrix);
-
-        transform.localTransform.set(matrix);
-    }
-
-    public Vector3f getEulerRotation(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        return getEulerRotation(transform.localTransform);
-    }
-
-    public void setEulerRotation(Vector3f eulerRotation, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-        float[] matrix = transform.localTransform.get(new float[16]);
-
-        ImGuizmo.decomposeMatrixToComponents(matrix, translation, rotation, scale);
-        rotation[0] = eulerRotation.x;
-        rotation[1] = eulerRotation.y;
-        rotation[2] = eulerRotation.z;
-        ImGuizmo.recomposeMatrixFromComponents(translation, rotation, scale, matrix);
-
-        transform.localTransform.set(matrix);
-    }
-
-    private Vector3f getEulerRotation(Matrix4f transform) {
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-
-        ImGuizmo.decomposeMatrixToComponents(transform.get(new float[16]), translation, rotation, scale);
-
-        return new Vector3f(rotation[0], rotation[1], rotation[2]);
-    }
-
-    public Vector3f getWorldPosition(int entityId) {
-        return getPosition(getGlobalTransform(entityId));
-    }
-
-    public Vector3f getLocalPosition(int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        return getPosition(transform.localTransform);
-    }
-
-    private Vector3f getPosition(Matrix4f transform) {
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-
-        ImGuizmo.decomposeMatrixToComponents(transform.get(new float[16]), translation, rotation, scale);
-
-        return new Vector3f(translation[0], translation[1], translation[2]);
-    }
-
-    public void setLocalPosition(Vector3f position, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        float[] translation = new float[16];
-        float[] rotation = new float[16];
-        float[] scale = new float[16];
-        float[] matrix = transform.localTransform.get(new float[16]);
-
-        ImGuizmo.decomposeMatrixToComponents(matrix, translation, rotation, scale);
-        translation[0] = position.x;
-        translation[1] = position.y;
-        translation[2] = position.z;
-        ImGuizmo.recomposeMatrixFromComponents(translation, rotation, scale, matrix);
-
-        transform.localTransform.set(matrix);
-    }
-
-    public void setTransform(Matrix4f transformMatrix, int entityId) {
-        var transform = ecsCoordinator.getComponent(Transform.class, entityId);
-        transform.localTransform = transformMatrix;
+    public Vector3f getGlobalPosition(int entityId) {
+        Matrix4f globalTransform = getGlobalTransform(entityId);
+        return new Vector4f(0, 0, 0, 1).mul(globalTransform).xyz(new Vector3f());
     }
 
     @Override

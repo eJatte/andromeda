@@ -1,30 +1,30 @@
 package andromeda;
 
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.CameraComponent;
+import andromeda.ecs.component.FpsControl;
+import andromeda.ecs.component.Perspective;
+import andromeda.ecs.component.Transform;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
 import andromeda.resources.SceneLoader;
+import andromeda.window.Screen;
 import andromeda.window.Window;
 import imgui.ImGui;
-import imgui.ImVec2;
-import imgui.flag.ImGuiConfigFlags;
-import imgui.flag.ImGuiWindowFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.opengl.GL11C.glClear;
-import static org.lwjgl.opengl.GL11C.glClearColor;
 
 public class Controller {
-    private EcsCoordinator ecsCoordinator;
+    private Ecs ecs;
     private Window window;
     protected ImGuiImplGlfw imGuiGlfw;
     protected ImGuiImplGl3 imGuiGl3;
 
-    int cameraEntity;
+    public static boolean MOUSE_ENABLED = true;
 
     public Controller() {
     }
@@ -34,18 +34,25 @@ public class Controller {
         this.imGuiGl3 = imGuiGl3;
         this.imGuiGlfw = imGuiGlfw;
 
-        this.ecsCoordinator = new EcsCoordinator();
-        ecsCoordinator.init();
+        this.ecs = new Ecs();
+        ecs.init();
 
-        cameraEntity = ecsCoordinator.createEntity();
-        CameraComponent cameraComponent = ecsCoordinator.addComponent(CameraComponent.class, cameraEntity);
-        cameraComponent.setMainCamera(true);
+        int cameraEntity = ecs.createEntity();
+        CameraComponent cameraComponent = ecs.addComponent(CameraComponent.class, cameraEntity);
+        cameraComponent.mainCamera = true;
+        Perspective perspective = ecs.addComponent(Perspective.class, cameraEntity);
+        perspective.aspectRatio = Screen.VIEWPORT_WIDTH / (float) Screen.VIEWPORT_HEIGHT;
+        FpsControl fpsControl = ecs.addComponent(FpsControl.class, cameraEntity);
+        Transform transform = ecs.getComponent(Transform.class, cameraEntity);
+        transform.setName("Main Camera");
 
-        SceneLoader.loadSceneEcs(scene_path, ecsCoordinator);
+        fpsControl.targetPosition = new Vector3f(10, 10, 10);
+        fpsControl.targetPitch = -20;
+        fpsControl.targetYaw = 45;
+
+        SceneLoader.loadSceneEcs(scene_path, ecs);
     }
 
-    float[] color = new float[4];
-    boolean first_time = true;
     public void loop() {
         long start, end;
         float frame_time = 0;
@@ -62,7 +69,7 @@ public class Controller {
             imGuiGlfw.newFrame();
             ImGui.newFrame();
 
-            ecsCoordinator.update();
+            ecs.update();
 
             ImGui.render();
             imGuiGl3.renderDrawData(ImGui.getDrawData());
@@ -78,15 +85,20 @@ public class Controller {
 
     private void updateMouseEnabled() {
         if (Input.get().keyUp(KeyCode.KEY_1)) {
+            MOUSE_ENABLED = false;
             this.window.hideCursor(true);
             Input.get().setMouseEnabled(true);
         }
 
         if (Input.get().keyUp(KeyCode.KEY_ESCAPE)) {
+            MOUSE_ENABLED = true;
             this.window.hideCursor(false);
             Input.get().setMouseEnabled(false);
         }
 
+        if(Input.get().keyUp(KeyCode.KEY_F11)) {
+            this.window.toggleFullScreen();
+        }
 
     }
 }
