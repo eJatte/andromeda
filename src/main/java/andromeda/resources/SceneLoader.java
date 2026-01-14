@@ -1,7 +1,10 @@
 package andromeda.resources;
 
-import andromeda.ecs.EcsCoordinator;
-import andromeda.ecs.component.*;
+import andromeda.ecs.Ecs;
+import andromeda.ecs.component.DirectionalLightComponent;
+import andromeda.ecs.component.EcsModel;
+import andromeda.ecs.component.PointLightComponent;
+import andromeda.ecs.component.Transform;
 import andromeda.ecs.system.TransformSystem;
 import andromeda.geometry.Mesh;
 import andromeda.geometry.Model;
@@ -19,36 +22,39 @@ import java.nio.charset.StandardCharsets;
 
 public class SceneLoader {
 
-    public static void loadSceneEcs(String scenePath, EcsCoordinator ecsCoordinator) {
+    public static void loadSceneEcs(String scenePath, Ecs ecs) {
         try {
             var gson = new Gson();
             var json = FileUtils.readFileToString(new File(scenePath), StandardCharsets.UTF_8);
             var sceneRepresentation = gson.fromJson(json, SceneRepresentation.class);
 
-            sceneRepresentation.entities.forEach(rep -> loadEntity(rep, ecsCoordinator));
-            loadLights(sceneRepresentation, ecsCoordinator);
+            sceneRepresentation.entities.forEach(rep -> loadEntity(rep, ecs));
+            loadLights(sceneRepresentation, ecs);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to load scene: " + scenePath);
         }
     }
 
-    private static void loadLights(SceneRepresentation sceneRepresentation, EcsCoordinator ecsCoordinator) {
+    private static void loadLights(SceneRepresentation sceneRepresentation, Ecs ecs) {
         for (LightRepresentation representation : sceneRepresentation.lights) {
             if (representation.type == LightType.DIRECTIONAL) {
-                int entity = ecsCoordinator.createEntity();
+                int entity = ecs.createEntity();
 
-                ecsCoordinator.getComponent(Transform.class, entity);
+                Transform transform = ecs.getComponent(Transform.class, entity);
+                transform.rotateEuler(new Vector3f(representation.rotation));
+                transform.setName("Directional Light");
 
-                var dirLight = ecsCoordinator.addComponent(DirectionalLightComponent.class, entity);
+                var dirLight = ecs.addComponent(DirectionalLightComponent.class, entity);
                 dirLight.setColor(new Vector3f(representation.color));
-                dirLight.setDirection(new Vector3f(representation.position));
                 dirLight.setCastShadows(representation.castShadows);
             } else if (representation.type == LightType.POINT) {
-                int entity = ecsCoordinator.createEntity();
+                int entity = ecs.createEntity();
 
-                ecsCoordinator.getComponent(Transform.class, entity).localTransform.translate(new Vector3f(representation.position));
+                Transform transform = ecs.getComponent(Transform.class, entity);
+                transform.setPosition(new Vector3f(representation.position));
+                transform.setName("Point Light");
 
-                var pointLight = ecsCoordinator.addComponent(PointLightComponent.class, entity);
+                var pointLight = ecs.addComponent(PointLightComponent.class, entity);
                 pointLight.setColor(new Vector3f(representation.color));
                 pointLight.setRadius(representation.radius);
             } else {
@@ -58,7 +64,7 @@ public class SceneLoader {
         }
     }
 
-    private static int loadEntity(EntityRepresentation entityRepresentation, EcsCoordinator ecsCoordinator) {
+    private static int loadEntity(EntityRepresentation entityRepresentation, Ecs ecs) {
         var material = Material.loadMaterial(entityRepresentation.material);
 
         Model model = switch (entityRepresentation.geometry) {
@@ -70,14 +76,17 @@ public class SceneLoader {
         int entityId = -1;
 
         if (model == null) {
-            var modeLoader = new ModelLoader(entityRepresentation.geometry, ecsCoordinator);
+            var modeLoader = new ModelLoader(entityRepresentation.geometry, ecs);
             entityId = modeLoader.load();
         } else {
-            entityId = ecsCoordinator.createEntity();
+            entityId = ecs.createEntity();
 
-            var modelComponent = ecsCoordinator.addComponent(EcsModel.class, entityId);
+            var modelComponent = ecs.addComponent(EcsModel.class, entityId);
             modelComponent.getMeshes().addAll(model.getMeshes());
             modelComponent.getMeshes().forEach(m -> m.getGeometry().upload());
+
+            Transform transformComp = ecs.getComponent(Transform.class, entityId);
+            transformComp.setName(entityRepresentation.geometry);
         }
 
         var position = new Vector3f(entityRepresentation.position);
@@ -88,12 +97,14 @@ public class SceneLoader {
         transform.translate(position);
         transform.scale(scale);
 
-        var transformSystem = ecsCoordinator.getSystem(TransformSystem.class);
+        Transform transformComp = ecs.getComponent(Transform.class, entityId);
+        transformComp.translate(position);
+        transformComp.setScale(transformComp.getScale().mul(scale));
 
-        transformSystem.setTransform(transform, entityId);
+        var transformSystem = ecs.getSystem(TransformSystem.class);
 
         for (var childRep : entityRepresentation.children) {
-            var childEntityId = loadEntity(childRep, ecsCoordinator);
+            var childEntityId = loadEntity(childRep, ecs);
 
             transformSystem.setParent(childEntityId, entityId);
         }

@@ -57,4 +57,10 @@ public class FrameBuffer {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, this.width, this.height);
     }
+
+    public void destroy() {
+        glDeleteFramebuffers(this.fbo);
+        glDeleteRenderbuffers(this.depthBuffer);
+        glDeleteTextures(this.renderTexture);
+    }
 }

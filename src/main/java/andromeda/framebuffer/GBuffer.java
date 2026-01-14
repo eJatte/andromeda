@@ -78,4 +78,14 @@ public class GBuffer extends FrameBuffer {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, this.width, this.height);
     }
+
+    @Override
+    public void destroy() {
+        glDeleteFramebuffers(this.fbo);
+        glDeleteRenderbuffers(this.depthBuffer);
+        glDeleteTextures(this.gPosition);
+        glDeleteTextures(this.gNormal);
+        glDeleteTextures(this.gColor);
+        glDeleteTextures(this.gSpecular);
+    }
 }

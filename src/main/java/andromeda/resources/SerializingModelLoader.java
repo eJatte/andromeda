@@ -64,7 +64,9 @@ public class SerializingModelLoader {
 
         Matrix4f transform = AssimpUtil.convertAiMatrix(aiNode.mTransformation());
 
-        return new SerializableModel(meshIndices, parentIndex, transform);
+        String name = aiNode.mName().dataString();
+
+        return new SerializableModel(meshIndices, parentIndex, transform, name);
     }
 
     private SerializableMesh[] loadMeshes(AIScene aiScene) {

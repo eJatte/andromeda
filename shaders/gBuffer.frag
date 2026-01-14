@@ -36,10 +36,12 @@ void main()
     vec3 t = normalize(v_tangent);
     vec3 bt = normalize(v_bitangent);
 
-    vec3 t_diffuse = vec3(1);
+    vec4 t_diffuse = vec4(1);
 
     if (has_diffuse_texture) {
-        t_diffuse = texture(diffuse_texture, v_uv*material.texture_scale).rgb;
+        t_diffuse = texture(diffuse_texture, v_uv*material.texture_scale).rgba;
+        if (t_diffuse.a < 0.99)
+            discard;
     }
     if (has_normal_texture) {
         vec3 t_normal = texture(normal_texture, v_uv*material.texture_scale).rgb;
@@ -56,7 +58,7 @@ void main()
 
     gPosition = v_position;
     gNormal = n;
-    gAlbedoSpecular.rgb = t_diffuse * material.diffuse;
+    gAlbedoSpecular.rgb = t_diffuse.xyz * material.diffuse;
     // we divide by 256.0f to normalize to 0-1. This means that the max value for shininess is 256.0f.
     // the reason we do this is because we dont use a floating point texture for this.
     gAlbedoSpecular.w = material.shininess / 256.0f;

@@ -2,7 +2,9 @@ package andromeda.ecs.component;
 
 import andromeda.ecs.entity.EntityManager;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ComponentManager {
@@ -46,6 +48,10 @@ public class ComponentManager {
         }
 
         return clazz.cast(entityComponentMap.get(clazz)[entityId]);
+    }
+
+    public Collection<Component> getComponents() {
+        return componentMap.values();
     }
 
 }

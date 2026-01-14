@@ -1,6 +1,5 @@
 package andromeda.ecs.system;
 
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,14 +11,14 @@ public class SystemManager {
         this.systems = new HashMap<>();
     }
 
-    public void entitySignatureUpdate(int entityId, BitSet signature) {
+    public void entitySignatureUpdate(int entityId, Signature signature) {
         for (EcsSystem ecsSystem : systems.values()) {
-            var intersection = (BitSet) ecsSystem.getSignature().clone();
-            intersection.and(signature);
-            if (intersection.cardinality() == ecsSystem.getSignature().cardinality()) {
-                ecsSystem.addEntity(entityId);
-            } else {
+            List<Signature> matchingSignatures = ecsSystem.getSignatures().stream().filter(signature::contains).toList();
+
+            if (matchingSignatures.isEmpty()) {
                 ecsSystem.removeEntity(entityId);
+            } else {
+                matchingSignatures.forEach(s -> ecsSystem.addEntity(s, entityId));
             }
         }
     }
@@ -35,7 +34,7 @@ public class SystemManager {
     }
 
     public <T extends EcsSystem> T getSystem(Class<T> clazz) {
-        if(!systems.containsKey(clazz)){
+        if (!systems.containsKey(clazz)) {
             throw new IllegalStateException("System does not exist: " + clazz.getName());
         }
         return clazz.cast(systems.get(clazz));
