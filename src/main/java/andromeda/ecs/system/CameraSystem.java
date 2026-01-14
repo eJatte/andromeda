@@ -1,137 +1,69 @@
 package andromeda.ecs.system;
 
-import andromeda.DeltaTime;
-import andromeda.ecs.EcsCoordinator;
+import andromeda.ecs.Ecs;
 import andromeda.ecs.component.CameraComponent;
 import andromeda.ecs.component.ComponentType;
-import andromeda.input.Input;
-import andromeda.input.KeyCode;
+import andromeda.ecs.component.Perspective;
+import andromeda.ecs.component.Transform;
 import andromeda.projection.Camera;
-import org.joml.Vector2f;
+import andromeda.projection.EcsCamera;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
-import java.util.List;
-
-import static org.joml.Math.*;
+import java.util.Set;
 
 public class CameraSystem extends EcsSystem {
-    private int currentMainCamera = -1;
+    private int mainCameraEntityId = -1;
+    private TransformSystem transformSystem;
 
-    public CameraSystem(EcsCoordinator ecsCoordinator) {
-        super(List.of(ComponentType.TRANSFORM, ComponentType.CAMERA), ecsCoordinator);
+    public CameraSystem(Ecs ecs) {
+        super(ecs);
+    }
+
+    @Override
+    public void init() {
+        transformSystem = ecs.getSystem(TransformSystem.class);
+    }
+
+    @Override
+    public Set<Signature> getSignatures() {
+        return Set.of(Signature.of(ComponentType.CAMERA, ComponentType.TRANSFORM, ComponentType.PERSPECTIVE));
     }
 
     @Override
     public void update() {
-        for (var entity : this.entities) {
-            var cameraComponent = ecsCoordinator.getComponent(CameraComponent.class, entity);
-            if (cameraComponent.isMainCamera()) {
-                if (currentMainCamera != entity) {
-                    currentMainCamera = entity;
-                    newMainCamera(cameraComponent);
-                }
-                updateCamera(cameraComponent);
-            }
+        mainCameraEntityId = getMainCameraEntityId();
+    }
+
+    private int getMainCameraEntityId() {
+        for (var entity : this.getEntities(Signature.of(ComponentType.CAMERA, ComponentType.TRANSFORM, ComponentType.PERSPECTIVE))) {
+            CameraComponent cameraComponent = ecs.getComponent(CameraComponent.class, entity);
+            if (cameraComponent.mainCamera)
+                return entity;
         }
+        return -1;
     }
 
     public Camera getCurrentMainCamera() {
-        return ecsCoordinator.getComponent(CameraComponent.class, this.currentMainCamera).getProjectionCamera();
-    }
+        Transform transform = ecs.getComponent(Transform.class, this.mainCameraEntityId);
+        Perspective perspective = ecs.getComponent(Perspective.class, this.mainCameraEntityId);
 
-    public int getCurrentMainCameraEntity() {
-        return this.currentMainCamera;
-    }
+        Matrix4f matrix = transformSystem.getGlobalTransform(this.mainCameraEntityId);
 
-    public void setMainCamera(int entityId) {
-        if( entityId != this.currentMainCamera) {
-            var mainCameraComponent = ecsCoordinator.getComponent(CameraComponent.class, this.currentMainCamera);
-            var newMainCameraComponent = ecsCoordinator.getComponent(CameraComponent.class, entityId);
+        Vector3f forward = new Vector3f(0, 0.0f, -1.0f);
+        new Vector4f(forward, 0).mul(matrix, new Vector4f()).xyz(forward).normalize();
 
-            mainCameraComponent.setMainCamera(false);
-            newMainCameraComponent.setMainCamera(true);
+        Vector3f up = new Vector3f(0, 1, 0);
+        new Vector4f(up, 0).mul(matrix, new Vector4f()).xyz(up).normalize();
 
-            this.currentMainCamera = entityId;
-            newMainCamera(newMainCameraComponent);
-        }
-    }
+        Vector3f position = transformSystem.getGlobalPosition(this.mainCameraEntityId);
 
-    private void newMainCamera(CameraComponent cameraComponent) {
-        cameraComponent.getProjectionCamera().setPosition(cameraComponent.targetPosition);
-        cameraComponent.targetCameraForward = calculateCameraForward(cameraComponent);
-        cameraComponent.getProjectionCamera().setCameraForward(cameraComponent.targetCameraForward);
+        var view = new Matrix4f().lookAt(position, position.add(forward, new Vector3f()), up);
 
-        var camera = cameraComponent.getProjectionCamera();
-        var cameraRight = camera.getCameraForward().cross(new Vector3f(0, 1, 0), new Vector3f());
-        camera.setCameraUp(cameraRight.cross(camera.getCameraForward(), new Vector3f()));
-    }
-
-    private void updateCamera(CameraComponent cameraComponent) {
-        var camera = cameraComponent.getProjectionCamera();
-
-        float speed = 10f * DeltaTime.deltaTime;
-
-        if (Input.get().key(KeyCode.KEY_LEFT_SHIFT)) {
-            speed *= 3;
-        }
-
-        var cameraRight = camera.getCameraForward().cross(new Vector3f(0, 1, 0), new Vector3f());
-        camera.setCameraUp(cameraRight.cross(camera.getCameraForward(), new Vector3f()));
-
-        var direction = new Vector3f(0);
-
-        if (Input.get().key(KeyCode.KEY_W))
-            direction.add(camera.getCameraForward());
-        if (Input.get().key(KeyCode.KEY_S))
-            direction.sub(camera.getCameraForward());
-
-        if (Input.get().key(KeyCode.KEY_D))
-            direction.add(cameraRight);
-        if (Input.get().key(KeyCode.KEY_A))
-            direction.sub(cameraRight);
-
-        if (Input.get().key(KeyCode.KEY_E))
-            direction.add(new Vector3f(0, 1, 0));
-        if (Input.get().key(KeyCode.KEY_Q))
-            direction.sub(new Vector3f(0, 1, 0));
-
-        if (direction.length() > 0)
-            direction.normalize().mul(speed);
-
-
-        cameraComponent.targetPosition.add(direction);
-        var diffPos = cameraComponent.targetPosition.sub(camera.getPosition(), new Vector3f());
-        camera.getPosition().add(diffPos.mul(0.2f));
-
-        cameraComponent.targetCameraForward = calculateCameraForward(cameraComponent);
-
-        var diffFor = cameraComponent.targetCameraForward.sub(camera.getCameraForward(), new Vector3f());
-        camera.getCameraForward().add(diffFor.mul(0.2f));
-        camera.getCameraForward().normalize();
-    }
-
-    private Vector3f calculateCameraForward(CameraComponent cameraComponent) {
-        var mouseDelta = Input.get().isMouseEnabled() ? Input.get().getMouseDelta() : new Vector2f(0);
-
-        float speed = 140f * DeltaTime.deltaTime;
-
-        var pitchDelta = -mouseDelta.y / 720.0f;
-        cameraComponent.pitch += pitchDelta * 40.0f * speed;
-        if (cameraComponent.pitch > 89.0f)
-            cameraComponent.pitch = 89.0f;
-        if (cameraComponent.pitch < -89.0f)
-            cameraComponent.pitch = -89.0f;
-
-        var yawDelta = mouseDelta.x / 720.0f;
-        cameraComponent.yaw += yawDelta * 40.0f * speed;
-
-        var front = new Vector3f(0);
-        front.x = cos(toRadians(cameraComponent.yaw)) * cos(toRadians(cameraComponent.pitch));
-        front.y = sin(toRadians(cameraComponent.pitch));
-        front.z = sin(toRadians(cameraComponent.yaw)) * cos(toRadians(cameraComponent.pitch));
-        front.normalize();
-
-        return front;
+        Camera camera = new EcsCamera(perspective, view);
+        camera.setPosition(position);
+        return camera;
     }
 
     @Override

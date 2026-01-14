@@ -39,7 +39,7 @@
   ],
   "lights": [
     {
-      "position": [1, 1, 1],
+      "rotation": [60, 45, 0],
       "color":[1, 1,1],
       "type": "directional"
     },

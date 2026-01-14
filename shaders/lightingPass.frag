@@ -34,12 +34,6 @@ uniform mat4x4 projection, view;
 float near = 0.1;
 float far  = 100.0;
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0;// back to NDC
-    return (2.0 * near * far) / (far + near - z * (far - near));
-}
-
 int getCascadeLevel(float normalized_dist) {
     int level = 0;
 
@@ -120,27 +114,25 @@ void main()
     vec3 normal = texture(gNormal, v_uv).rgb;
     vec3 position = texture(gPosition, v_uv).xyz;
 
-    vec3 fogColor = vec3(0.6f, 0.7f, 0.75f);
+    vec3 c_ambient = vec3(0.1f, 0.1f, 0.1f) * albedo;
+    vec3 c_specular = vec3(0);
+    vec3 c_diffuse = vec3(0);
+
+    vec3 view_position = vec3(view * vec4(position, 1));
+
+    vec3 v = normalize(eyePos - position);
+    float dist = -view_position.z;
+    float near = 0.1f;
+    float far = 100.0f;
+    float normalized_dist = dist / (far - near);
+    int cascadeLevel = getCascadeLevel(normalized_dist);
+
+    vec3 fogColor = vec3(0.3f, 0.5f, 0.6f);
 
     if (shininess == 0) {
         FragColor = fogColor;
     }
     else {
-
-
-        vec3 c_ambient = vec3(0.1f, 0.1f, 0.1f) * albedo;
-        vec3 c_specular = vec3(0);
-        vec3 c_diffuse = vec3(0);
-
-        vec3 view_position = vec3(view * vec4(position, 1));
-
-        vec3 v = normalize(eyePos - position);
-        float dist = -view_position.z;
-        float near = 0.1f;
-        float far = 100.0f;
-        float normalized_dist = dist / (far - near);
-        int cascadeLevel = getCascadeLevel(normalized_dist);
-
         for (int i = 0; i < lightCount; i++) {
             Light light = lights[i];
 
@@ -177,17 +169,11 @@ void main()
             }
         }
 
-
         vec3 c_shaded = c_ambient + c_diffuse + c_specular;
-
-        vec3 gamma_corrected = pow(c_shaded, vec3(1 / 2.2));
-
-
-        //FragColor = texture(gAlbedoSpec, v_uv).xyz;
-
 
         float depth = normalized_dist;
         depth = min(pow(depth+0.05, 5), 1);
-        FragColor = depth * fogColor + (1 - depth) * vec3(gamma_corrected);
+
+        FragColor = depth * fogColor + (1 - depth) * c_shaded;
     }
 }

@@ -1,43 +1,40 @@
 package andromeda.ecs.system;
 
-import andromeda.ecs.EcsCoordinator;
-import andromeda.ecs.component.ComponentType;
-import andromeda.ecs.entity.EntityManager;
+import andromeda.ecs.Ecs;
 
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class EcsSystem {
-    private BitSet signature;
-    EcsCoordinator ecsCoordinator;
-    Set<Integer> entities;
+    protected Ecs ecs;
+    private Map<Signature, Set<Integer>> entities;
 
-    public EcsSystem(List<ComponentType> signature, EcsCoordinator ecsCoordinator) {
-        this.signature = new BitSet(EntityManager.MAX_COMPONENTS);
-        for (ComponentType componentType : signature) {
-            this.signature.set(componentType.id, true);
+    public EcsSystem(Ecs ecs) {
+
+        this.entities = new HashMap<>();
+        for(var signature : getSignatures()) {
+            entities.put(signature, new HashSet<>());
         }
-
-        this.entities = new HashSet<>();
-        this.ecsCoordinator = ecsCoordinator;
+        this.ecs = ecs;
     }
 
-    public BitSet getSignature() {
-        return signature;
-    }
-
-    public void addEntity(int entityId) {
-        this.entities.add(entityId);
+    public void addEntity(Signature signature, int entityId) {
+        this.entities.get(signature).add(entityId);
     }
 
     public void removeEntity(int entityId) {
-        this.entities.remove(entityId);
+        this.entities.values().forEach(e -> e.remove(entityId));
+    }
+
+    public Set<Integer> getEntities(Signature signature) {
+        return this.entities.get(signature);
     }
 
     public void init() {
     }
+
+    public void onAdd(int entityId) {}
+
+    public abstract Set<Signature> getSignatures();
 
     public abstract void update();
 

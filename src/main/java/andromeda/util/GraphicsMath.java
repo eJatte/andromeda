@@ -8,6 +8,10 @@ import org.joml.Vector4f;
 import java.util.Arrays;
 
 public class GraphicsMath {
+
+    public static final float DEG2RAD = (float) Math.PI / 180.0f;
+    public static final float RAD2DEG = 180.0f / (float) Math.PI;
+
     public static class Sphere {
         public float radius;
         public Vector3f position;
