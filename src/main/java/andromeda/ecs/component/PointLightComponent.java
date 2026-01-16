@@ -10,10 +10,12 @@ public class PointLightComponent implements Component {
 
     public Vector3f color;
     public float radius;
+    public float intensity;
 
     public PointLightComponent() {
         this.color = new Vector3f(1,1,1);
         this.radius = 5;
+        this.intensity = 1;
     }
 
     public Vector3f getColor() {

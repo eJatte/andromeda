@@ -304,11 +304,13 @@ public class EditorSystem extends EcsSystem {
     private void handlePointLightComponent(PointLightComponent pointLight) {
         pointLight.color.set(pickColor("color", pointLight.color));
         pointLight.radius = pickFloat("radius", pointLight.radius, 0.05f);
+        pointLight.intensity = pickFloat("intensity", pointLight.intensity, 0.05f);
     }
 
     private void handleDirectionalLightComponent(DirectionalLightComponent directionalLight) {
         directionalLight.color.set(pickColor("color", directionalLight.color));
         directionalLight.castShadows = pickBoolean("cast shadows", directionalLight.castShadows);
+        directionalLight.intensity = pickFloat("intensity", directionalLight.intensity, 0.05f);
     }
 
     private void handleFpsCameraComponent(FpsControl fpsControl) {

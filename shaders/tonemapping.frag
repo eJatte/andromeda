@@ -11,7 +11,9 @@ void main()
 
     vec3 color = texture(renderedTexture, v_uv).xyz;
 
-    vec3 gamma_corrected = pow(color, vec3(1 / 2.2));
+    vec3 tonemapped =  color / (color + vec3(1.0));;
+
+    vec3 gamma_corrected = pow(tonemapped, vec3(1 / 2.2));
 
     FragColor = gamma_corrected;
 }

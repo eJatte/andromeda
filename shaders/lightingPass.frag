@@ -9,6 +9,7 @@ struct Light {
     vec3 diffuse;
     vec3 specular;
     float radius;
+    float intensity;
     int type;
     bool castShadows;
 };
@@ -149,8 +150,8 @@ void main()
                     is_in_light = isInLight(position, cascadeLevel, l, normal);
                 }
 
-                c_specular += specular * t_specular * light.specular * is_in_light;
-                c_diffuse += diffuse * light.diffuse * albedo * is_in_light;
+                c_specular += specular * t_specular * light.specular * is_in_light * light.intensity;
+                c_diffuse += diffuse * light.diffuse * albedo * is_in_light * light.intensity;
             }
             else if (light.type == 1) {
                 vec3 d = light.position - position;
@@ -164,8 +165,8 @@ void main()
                 float specular = pow(max(dot(r, v), 0), shininess);
                 float diffuse = max(dot(l, normal), 0);
 
-                c_specular += attenuation * specular * t_specular * light.specular;
-                c_diffuse += attenuation * diffuse * light.diffuse * albedo;
+                c_specular += attenuation * specular * t_specular * light.specular * light.intensity;
+                c_diffuse += attenuation * diffuse * light.diffuse * albedo * light.intensity;
             }
         }
 
@@ -174,6 +175,8 @@ void main()
         float depth = normalized_dist;
         depth = min(pow(depth+0.05, 5), 1);
 
-        FragColor = depth * fogColor + (1 - depth) * c_shaded;
+        //FragColor = depth * fogColor + (1 - depth) * c_shaded;
+
+        FragColor = c_shaded;
     }
 }

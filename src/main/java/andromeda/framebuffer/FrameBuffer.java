@@ -1,18 +1,18 @@
 package andromeda.framebuffer;
 
-import andromeda.window.Screen;
-
 import static org.lwjgl.opengl.GL11C.*;
-import static org.lwjgl.opengl.GL11C.GL_DEPTH_COMPONENT;
 import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30C.*;
-import static org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL32C.glFramebufferTexture;
 
 public class FrameBuffer {
     public int fbo, renderTexture, depthBuffer, width, height;
 
     public static FrameBuffer create(int width, int height) {
+        return create(width, height, false);
+    }
+
+    public static FrameBuffer create(int width, int height, boolean hdr) {
         int fbo = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
@@ -20,7 +20,7 @@ public class FrameBuffer {
 
         glBindTexture(GL_TEXTURE_2D, renderTexture);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGB16F : GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
