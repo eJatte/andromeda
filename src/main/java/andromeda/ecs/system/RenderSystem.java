@@ -1,7 +1,6 @@
 package andromeda.ecs.system;
 
 import andromeda.ecs.Ecs;
-import andromeda.ecs.component.ComponentType;
 import andromeda.ecs.component.DirectionalLightComponent;
 import andromeda.ecs.component.PointLightComponent;
 import andromeda.ecs.component.Transform;
@@ -23,6 +22,8 @@ import org.joml.Vector4f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static andromeda.ecs.component.ComponentType.*;
 
 public class RenderSystem extends EcsSystem {
 
@@ -69,12 +70,12 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public Set<Signature> getSignatures() {
-        return Set.of(Signature.of(ComponentType.MODEL), Signature.of(ComponentType.POINT_LIGHT), Signature.of(ComponentType.DIRECTIONAL_LIGHT));
+        return Set.of(Signature.of(TRANSFORM, MODEL), Signature.of(TRANSFORM, POINT_LIGHT), Signature.of(TRANSFORM, DIRECTIONAL_LIGHT));
     }
 
     @Override
     public void update() {
-        List<RenderTarget> renderTargets = cullPass.cullRenderTargets(this.getEntities(Signature.of(ComponentType.MODEL)));
+        List<RenderTarget> renderTargets = cullPass.cullRenderTargets(this.getEntities(TRANSFORM, MODEL));
         Camera camera = cameraSystem.getCurrentMainCamera();
         geometryPass.render(camera, renderTargets, gBuffer);
 
@@ -117,13 +118,13 @@ public class RenderSystem extends EcsSystem {
 
     private List<Light> getLights() {
         List<Light> lights = new ArrayList<>();
-        for (int entity : this.getEntities(Signature.of(ComponentType.POINT_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, POINT_LIGHT)) {
             var pointLightComponent = ecs.getComponent(PointLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius()));
         }
 
-        for (int entity : this.getEntities(Signature.of(ComponentType.DIRECTIONAL_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
             var directionalLightComponent = ecs.getComponent(DirectionalLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
@@ -135,7 +136,7 @@ public class RenderSystem extends EcsSystem {
     }
 
     private DirectionalLight getShadowCastingDirLight() {
-        for (int entity : this.getEntities(Signature.of(ComponentType.DIRECTIONAL_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
             var dirLight = ecs.getComponent(DirectionalLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
