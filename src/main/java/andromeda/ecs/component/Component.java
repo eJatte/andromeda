@@ -5,4 +5,6 @@ public interface Component {
     ComponentType componentType();
 
     Component createComponent();
+
+    Component copy();
 }

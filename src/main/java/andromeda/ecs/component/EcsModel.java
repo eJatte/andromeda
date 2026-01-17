@@ -29,4 +29,11 @@ public class EcsModel implements Component {
     public Component createComponent() {
         return new EcsModel();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new EcsModel();
+        comp.meshes = new ArrayList<>(this.meshes.stream().map(Mesh::copy).toList());
+        return comp;
+    }
 }

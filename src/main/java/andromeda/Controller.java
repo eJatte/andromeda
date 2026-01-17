@@ -41,7 +41,7 @@ public class Controller {
         CameraComponent cameraComponent = ecs.addComponent(CameraComponent.class, cameraEntity);
         cameraComponent.mainCamera = true;
         Perspective perspective = ecs.addComponent(Perspective.class, cameraEntity);
-        perspective.aspectRatio = Screen.VIEWPORT_WIDTH / (float) Screen.VIEWPORT_HEIGHT;
+        perspective.aspectRatio = Screen.width / (float) Screen.height;
         FpsControl fpsControl = ecs.addComponent(FpsControl.class, cameraEntity);
         Transform transform = ecs.getComponent(Transform.class, cameraEntity);
         transform.setName("Main Camera");

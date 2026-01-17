@@ -23,7 +23,7 @@ public class ToneMappingPass {
 
         program.use();
         program.setInt("renderedTexture", 0);
-        sourceBuffer.bindTexture(GL_TEXTURE0);
+        sourceBuffer.bindTexture("color", GL_TEXTURE0);
 
         quad.draw();
     }

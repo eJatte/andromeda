@@ -15,4 +15,12 @@ public class RigidBody implements Component {
     public Component createComponent() {
         return new RigidBody();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new RigidBody();
+        comp.velocity = new Vector3f(this.velocity);
+        comp.drag = this.drag;
+        return comp;
+    }
 }

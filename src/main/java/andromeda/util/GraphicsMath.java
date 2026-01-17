@@ -12,6 +12,10 @@ public class GraphicsMath {
     public static final float DEG2RAD = (float) Math.PI / 180.0f;
     public static final float RAD2DEG = 180.0f / (float) Math.PI;
 
+    public static float lerp(float min, float max, float t) {
+        return min + (max - min) * t;
+    }
+
     public static class Sphere {
         public float radius;
         public Vector3f position;

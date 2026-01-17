@@ -50,6 +50,7 @@ public class Material {
 
     public Material(Material material) {
         this(material.ambient, material.diffuse, material.specular, material.shininess, material.diffuse_texture, material.normal_texture);
+        this.roughness_texture = material.roughness_texture;
     }
 
     public static Material loadMaterial(String materialPath) {

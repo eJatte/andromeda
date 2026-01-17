@@ -32,11 +32,6 @@ public class CullPass {
     private List<RenderTarget> getRenderTarget(int entityId) {
         EcsModel ecsModel = ecs.getComponent(EcsModel.class, entityId);
         Matrix4f transform = transformSystem.getGlobalTransform(entityId);
-        return ecsModel.getMeshes().stream().map(mesh -> getRenderTarget(mesh, transform)).toList();
+        return ecsModel.getMeshes().stream().map(mesh -> new RenderTarget(mesh, transform, entityId)).toList();
     }
-
-    private RenderTarget getRenderTarget(Mesh mesh, Matrix4f transform) {
-        return new RenderTarget(mesh, transform);
-    }
-
 }

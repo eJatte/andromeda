@@ -75,9 +75,6 @@ public class PhysicsSystem extends EcsSystem {
             float z = random.nextFloat() * 10 + 5;
 
             rigidBody.velocity = new Vector3f(x, y, z);
-
-            DeathTimer timer = ecs.addComponent(DeathTimer.class, entityId);
-            timer.timer_seconds = random.nextInt() % 20 + 3f;
         }
     }
 

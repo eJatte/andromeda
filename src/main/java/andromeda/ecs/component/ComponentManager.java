@@ -42,6 +42,18 @@ public class ComponentManager {
         return clazz.cast(component);
     }
 
+    public <T extends Component> T addComponent(T component, int entityId) {
+        var clazz = component.getClass();
+
+        if (!componentMap.containsKey(clazz)) {
+            throw new IllegalStateException("Component type not registered " + clazz.getName());
+        }
+
+        entityComponentMap.get(clazz)[entityId] = component;
+
+        return component;
+    }
+
     public <T extends Component> T getComponent(Class<T> clazz, int entityId) {
         if (!componentMap.containsKey(clazz)) {
             throw new IllegalStateException("Component type not registered " + clazz.getName());

@@ -136,4 +136,17 @@ public class Transform implements Component {
         return new Transform();
     }
 
+    @Override
+    public Component copy() {
+        var comp = new Transform();
+        comp.localTransform = new Matrix4f(this.localTransform);
+        comp.position = new Vector3f(this.position);
+        comp.rotation = new Quaternionf(this.rotation);
+        comp.scale = new Vector3f(this.scale);
+        comp.parentEntityId = this.parentEntityId;
+        comp.dirtyFlag = this.dirtyFlag;
+        comp.name = this.name;
+        return comp;
+    }
+
 }

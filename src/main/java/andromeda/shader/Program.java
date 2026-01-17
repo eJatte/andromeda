@@ -80,6 +80,17 @@ public class Program {
         glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
     }
 
+    public void setVec3(String name, int index, Vector3f mat4) {
+        this.setVec3("%s[%d]".formatted(name, index), mat4);
+    }
+
+    public void setVec3(String name, Vector3f[] vector3fs) {
+        int size = vector3fs.length;
+        for (int i = 0; i < size; i++) {
+            setVec3(name, i, vector3fs[i]);
+        }
+    }
+
     public void setVec2(String name, Vector2f v) {
         glUniform2f(getUniformLocation(name), v.x, v.y);
     }
@@ -110,7 +121,7 @@ public class Program {
     }
 
     public void setCamera(Camera camera) {
-        this.setMat4("projection", camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT));
+        this.setMat4("projection", camera.getProjection());
         this.setMat4("view", camera.getView());
         this.setVec3("eyePos", camera.getPosition());
     }

@@ -18,4 +18,9 @@ public class Mesh {
     public Material getMaterial() {
         return material;
     }
+
+    public Mesh copy() {
+        Material materialCopy = new Material(material);
+        return new Mesh(geometry, materialCopy);
+    }
 }

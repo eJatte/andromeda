@@ -28,7 +28,6 @@ public class Ecs {
         componentManager.registerComponent(new FpsControl());
         componentManager.registerComponent(new RigidBody());
         componentManager.registerComponent(new Perspective());
-        componentManager.registerComponent(new DeathTimer());
 
         systemManager.registerSystem(new DebugSystem(this));
 
@@ -36,10 +35,10 @@ public class Ecs {
         systemManager.registerSystem(new PropertiesSystem(this));
         systemManager.registerSystem(new CameraSystem(this));
         systemManager.registerSystem(new FpsControlSystem(this));
-        systemManager.registerSystem(new EditorSystem(this));
+
         systemManager.registerSystem(new PhysicsSystem(this));
-        systemManager.registerSystem(new DeathTimerSystem(this));
         systemManager.registerSystem(new RenderSystem(this));
+        systemManager.registerSystem(new EditorSystem(this));
 
         systemManager.getSystems().forEach(EcsSystem::init);
     }
@@ -70,6 +69,13 @@ public class Ecs {
         entityManager.getSignature(entityId).set(component.componentType());
         systemManager.entitySignatureUpdate(entityId, entityManager.getSignature(entityId));
         return component;
+    }
+
+    public <T extends Component> T addComponent(T component, int entityId) {
+        var c = componentManager.addComponent(component, entityId);
+        entityManager.getSignature(entityId).set(c.componentType());
+        systemManager.entitySignatureUpdate(entityId, entityManager.getSignature(entityId));
+        return c;
     }
 
     public Collection<Integer> getEntities() {

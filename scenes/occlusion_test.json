@@ -1,10 +1,11 @@
 {
   "entities": [
     {
-      "position": [2, 0, 0],
+      "position": [0, 0, 0],
       "scale": [1.0, 1.0, 1.0],
+      "rotation": [0, -45, 0],
       "material": "materials/brick_material.json",
-      "geometry": "D:/Models/cubestack/cubestack.glb",
+      "geometry": "D:/Models/occlusion test.glb",
       "children": []
     },
     {
@@ -22,24 +23,6 @@
       "intensity": 2.3,
       "castShadows": true,
       "type": "directional"
-    },
-    {
-      "position": [-4, 2, 4],
-      "color":[0.8, 0.1, 0.1],
-      "type": "point",
-      "radius": 7
-    },
-    {
-      "position": [0, 2, -5],
-      "color":[0.1, 0.8, 0.1],
-      "type": "point",
-      "radius": 7
-    },
-    {
-      "position": [4, 2, 4],
-      "color":[0.1, 0.1, 0.8],
-      "type": "point",
-      "radius": 7
     }
   ]
 }

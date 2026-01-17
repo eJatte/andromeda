@@ -32,4 +32,14 @@ public class Perspective implements Component {
     public Component createComponent() {
         return new Perspective();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new Perspective();
+        comp.aspectRatio = this.aspectRatio;
+        comp.fov = this.fov;
+        comp.near = this.near;
+        comp.far = this.far;
+        return comp;
+    }
 }

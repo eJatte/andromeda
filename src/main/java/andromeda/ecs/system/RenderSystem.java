@@ -5,9 +5,9 @@ import andromeda.ecs.component.DirectionalLightComponent;
 import andromeda.ecs.component.PointLightComponent;
 import andromeda.ecs.component.Transform;
 import andromeda.event.EventHandler;
-import andromeda.framebuffer.DepthBufferArray;
-import andromeda.framebuffer.FrameBuffer;
-import andromeda.framebuffer.GBuffer;
+import andromeda.framebuffer.*;
+import andromeda.input.Input;
+import andromeda.input.KeyCode;
 import andromeda.light.DirectionalLight;
 import andromeda.light.Light;
 import andromeda.light.PointLight;
@@ -16,6 +16,8 @@ import andromeda.render.pipeline.*;
 import andromeda.scene.RenderTarget;
 import andromeda.util.Cascade;
 import andromeda.window.Screen;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -24,8 +26,12 @@ import java.util.List;
 import java.util.Set;
 
 import static andromeda.ecs.component.ComponentType.*;
+import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL30C.*;
 
 public class RenderSystem extends EcsSystem {
+
+    private boolean DEBUG_SSAO = false;
 
     private CullPass cullPass;
     private GeometryPass geometryPass;
@@ -33,13 +39,16 @@ public class RenderSystem extends EcsSystem {
     private LightingPass lightingPass;
     private ToneMappingPass toneMappingPass;
     private ShowPass showPass;
+    private AmbientOcclusionPass ambientOcclusionPass;
 
     private CameraSystem cameraSystem;
 
     public GBuffer gBuffer;
-    public FrameBuffer hdrBuffer;
-    public FrameBuffer depthBuffer;
-    public FrameBuffer tonemappingBuffer;
+    public ColorBuffer hdrBuffer;
+    public DepthBufferArray depthBuffer;
+    public ColorBuffer tonemappingBuffer;
+    public ColorBuffer ambientOcclusionBuffer;
+    public ColorBuffer ambientOcclusionBlurBuffer;
 
     public RenderSystem(Ecs ecs) {
         super(ecs);
@@ -53,6 +62,7 @@ public class RenderSystem extends EcsSystem {
         lightingPass = new LightingPass();
         toneMappingPass = new ToneMappingPass();
         showPass = new ShowPass(ecs);
+        ambientOcclusionPass = new AmbientOcclusionPass();
 
         cullPass.init();
         geometryPass.init();
@@ -60,12 +70,22 @@ public class RenderSystem extends EcsSystem {
         lightingPass.init();
         toneMappingPass.init();
         showPass.init();
+        ambientOcclusionPass.init();
 
         cameraSystem = ecs.getSystem(CameraSystem.class);
 
         createBuffer(Screen.width, Screen.height);
         createDepthBuffer();
         EventHandler.get().addWindowResizeCallback(this::createBuffer);
+    }
+
+    public int readEntityId(Vector2i mPos) {
+        if (mPos.x > 0 && mPos.x < Screen.width && mPos.y > 0 && mPos.y < Screen.height) {
+            float[] f = new float[4];
+            gBuffer.readPixel(mPos.x, Screen.height - mPos.y, GL_RGBA, GL_COLOR_ATTACHMENT0, f);
+            return (int) f[3];
+        }
+        return -1;
     }
 
     @Override
@@ -86,34 +106,52 @@ public class RenderSystem extends EcsSystem {
             shadowPass.render(renderTargets, camera, directionalLight, depthBuffer);
         }
 
-        lightingPass.render(cascades, gBuffer, hdrBuffer, depthBuffer, this.getLights(), camera);
+        ambientOcclusionPass.render(gBuffer, ambientOcclusionBuffer, ambientOcclusionBlurBuffer, camera);
+
+        lightingPass.render(cascades, gBuffer, hdrBuffer, depthBuffer, ambientOcclusionBlurBuffer, this.getLights(), camera);
 
         toneMappingPass.render(hdrBuffer, tonemappingBuffer);
 
+        if (Input.get().keyUp(KeyCode.KEY_F3)) {
+            DEBUG_SSAO = !DEBUG_SSAO;
+        }
 
-        showPass.render(tonemappingBuffer);
-    }
-
-    public int getRenderTextureId() {
-        return tonemappingBuffer.renderTexture;
+        if (DEBUG_SSAO)
+            showPass.render(ambientOcclusionBlurBuffer.color);
+        else
+            showPass.render(tonemappingBuffer.color);
     }
 
     private void createDepthBuffer() {
-        depthBuffer = DepthBufferArray.create(2048, 2048, 4);
+        depthBuffer = new DepthBufferArray(2048, 2048, 4);
+        depthBuffer.create();
     }
 
     private void createBuffer(int width, int height) {
         if (gBuffer != null)
             gBuffer.destroy();
-        gBuffer = GBuffer.create(width, height);
+        gBuffer = new GBuffer(width, height);
+        gBuffer.create();
 
         if (hdrBuffer != null)
             hdrBuffer.destroy();
-        hdrBuffer = FrameBuffer.create(width, height, true);
+        hdrBuffer = new ColorBuffer(width, height, GL_RGB16F, GL_RGB);
+        hdrBuffer.create();
 
         if (tonemappingBuffer != null)
             tonemappingBuffer.destroy();
-        tonemappingBuffer = FrameBuffer.create(width, height);
+        tonemappingBuffer = new ColorBuffer(width, height, GL_RGB, GL_RGB);
+        tonemappingBuffer.create();
+
+        if (ambientOcclusionBuffer != null)
+            ambientOcclusionBuffer.destroy();
+        ambientOcclusionBuffer = new ColorBuffer(width, height, GL_RED, GL_RED);
+        ambientOcclusionBuffer.create();
+
+        if (ambientOcclusionBlurBuffer != null)
+            ambientOcclusionBlurBuffer.destroy();
+        ambientOcclusionBlurBuffer = new ColorBuffer(width, height, GL_RED, GL_RED);
+        ambientOcclusionBlurBuffer.create();
     }
 
     private List<Light> getLights() {

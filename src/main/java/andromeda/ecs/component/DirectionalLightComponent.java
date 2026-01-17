@@ -39,4 +39,13 @@ public class DirectionalLightComponent implements Component {
     public Component createComponent() {
         return new DirectionalLightComponent();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new DirectionalLightComponent();
+        comp.color = new Vector3f(this.color);
+        comp.intensity = this.intensity;
+        comp.castShadows = this.castShadows;
+        return comp;
+    }
 }

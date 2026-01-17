@@ -9,7 +9,7 @@ import java.util.Set;
 public class PropertiesSystem extends EcsSystem {
 
 
-    private boolean PLAY_MODE = false;
+    private boolean HIDE_GUI = false;
 
     public PropertiesSystem(Ecs ecs) {
         super(ecs);
@@ -33,11 +33,11 @@ public class PropertiesSystem extends EcsSystem {
     }
 
     private void togglePlayMode() {
-        PLAY_MODE = !PLAY_MODE;
+        HIDE_GUI = !HIDE_GUI;
     }
 
-    public boolean isPlayMode() {
-        return PLAY_MODE;
+    public boolean hideGUI() {
+        return HIDE_GUI;
     }
 
     @Override

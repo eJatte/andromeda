@@ -113,6 +113,10 @@ public class TransformSystem extends EcsSystem {
         return new Vector4f(0, 0, 0, 1).mul(globalTransform).xyz(new Vector3f());
     }
 
+    public List<Integer> getChildren(int entityId) {
+        return new ArrayList<>(getNode(entityId).children).stream().map(n -> n.entityId).toList();
+    }
+
     @Override
     public SystemType type() {
         return SystemType.LOOP;
