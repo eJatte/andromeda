@@ -27,7 +27,7 @@ public class PropertiesSystem extends EcsSystem {
 
     @Override
     public void update() {
-        if(Input.get().keyUp(KeyCode.KEY_2)) {
+        if(Input.get().keyUp(KeyCode.KEY_F2)) {
             togglePlayMode();
         }
     }
