@@ -94,27 +94,28 @@ public class EditorSystem extends EcsSystem {
         var rectPos = ImGui.getCursorScreenPos();
         ImGui.image(renderTextureId, viewportSize, new ImVec2(0, 1), new ImVec2(1, 0));
 
+        if (Controller.MOUSE_ENABLED) {
+            ImGuizmo.setOrthographic(false);
 
-        ImGuizmo.setOrthographic(false);
+            ImGuizmo.setDrawList();
 
-        ImGuizmo.setDrawList();
+            activeOperation();
 
-        activeOperation();
+            if (operation != -1 && currentEntity != -1) {
+                ImGuizmo.setRect(rectPos.x, rectPos.y, viewportSize.x, viewportSize.y);
+                var view = camera.getView().get(new float[16]);
+                var proj = camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT).get(new float[16]);
 
-        if (operation != -1 && currentEntity != -1) {
-            ImGuizmo.setRect(rectPos.x, rectPos.y, viewportSize.x, viewportSize.y);
-            var view = camera.getView().get(new float[16]);
-            var proj = camera.getProjectionWH(Screen.VIEWPORT_WIDTH, Screen.VIEWPORT_HEIGHT).get(new float[16]);
+                var transform = ecs.getComponent(Transform.class, currentEntity);
+                Matrix4f parentGlobalTransform = transform.getParentEntityId() != -1 ? transformSystem.getGlobalTransform(transform.getParentEntityId()) : new Matrix4f();
+                Matrix4f entityLocalTransform = transform.getLocalTransform();
+                Matrix4f entityGlobalTransform = parentGlobalTransform.mul(entityLocalTransform, new Matrix4f());
+                float[] matrix = entityGlobalTransform.get(new float[16]);
 
-            var transform = ecs.getComponent(Transform.class, currentEntity);
-            Matrix4f parentGlobalTransform = transform.getParentEntityId() != -1 ? transformSystem.getGlobalTransform(transform.getParentEntityId()) : new Matrix4f();
-            Matrix4f entityLocalTransform = transform.getLocalTransform();
-            Matrix4f entityGlobalTransform = parentGlobalTransform.mul(entityLocalTransform, new Matrix4f());
-            float[] matrix = entityGlobalTransform.get(new float[16]);
-
-            ImGuizmo.manipulate(view, proj, operation, Mode.WORLD, matrix);
-            Matrix4f transformed = new Matrix4f().set(matrix);
-            transform.setLocalTransform(parentGlobalTransform.invert(new Matrix4f()).mul(transformed));
+                ImGuizmo.manipulate(view, proj, operation, Mode.WORLD, matrix);
+                Matrix4f transformed = new Matrix4f().set(matrix);
+                transform.setLocalTransform(parentGlobalTransform.invert(new Matrix4f()).mul(transformed));
+            }
         }
 
         ImGui.end();
@@ -304,11 +305,13 @@ public class EditorSystem extends EcsSystem {
     private void handlePointLightComponent(PointLightComponent pointLight) {
         pointLight.color.set(pickColor("color", pointLight.color));
         pointLight.radius = pickFloat("radius", pointLight.radius, 0.05f);
+        pointLight.intensity = pickFloat("intensity", pointLight.intensity, 0.05f);
     }
 
     private void handleDirectionalLightComponent(DirectionalLightComponent directionalLight) {
         directionalLight.color.set(pickColor("color", directionalLight.color));
         directionalLight.castShadows = pickBoolean("cast shadows", directionalLight.castShadows);
+        directionalLight.intensity = pickFloat("intensity", directionalLight.intensity, 0.05f);
     }
 
     private void handleFpsCameraComponent(FpsControl fpsControl) {

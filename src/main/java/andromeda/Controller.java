@@ -84,16 +84,10 @@ public class Controller {
     }
 
     private void updateMouseEnabled() {
-        if (Input.get().keyUp(KeyCode.KEY_1)) {
-            MOUSE_ENABLED = false;
-            this.window.hideCursor(true);
-            Input.get().setMouseEnabled(true);
-        }
-
-        if (Input.get().keyUp(KeyCode.KEY_ESCAPE)) {
-            MOUSE_ENABLED = true;
-            this.window.hideCursor(false);
-            Input.get().setMouseEnabled(false);
+        if (Input.get().keyUp(KeyCode.KEY_F1)) {
+            MOUSE_ENABLED = !MOUSE_ENABLED;
+            this.window.hideCursor(!MOUSE_ENABLED);
+            Input.get().setMouseEnabled(!MOUSE_ENABLED);
         }
 
         if(Input.get().keyUp(KeyCode.KEY_F11)) {

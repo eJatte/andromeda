@@ -152,6 +152,7 @@ public class Program {
         this.setVec3("%s.diffuse".formatted(name), light.diffuse);
         this.setVec3("%s.specular".formatted(name), light.specular);
         this.setBool("%s.castShadows".formatted(name), light.castShadows);
+        this.setFloat("%s.intensity".formatted(name), light.intensity);
 
         if (light.type() == LightType.DIRECTIONAL) {
             this.setInt("%s.type".formatted(name), 0);

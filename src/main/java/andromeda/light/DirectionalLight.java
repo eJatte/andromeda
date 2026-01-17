@@ -4,8 +4,8 @@ import org.joml.Vector3f;
 
 public class DirectionalLight extends Light {
 
-    public DirectionalLight(Vector3f direction, Vector3f color) {
-        super(direction.normalize(), color);
+    public DirectionalLight(Vector3f direction, Vector3f color, float intensity) {
+        super(direction.normalize(), color, intensity);
     }
 
     @Override

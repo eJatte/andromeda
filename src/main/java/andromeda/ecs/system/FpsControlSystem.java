@@ -1,5 +1,6 @@
 package andromeda.ecs.system;
 
+import andromeda.Controller;
 import andromeda.DeltaTime;
 import andromeda.ecs.Ecs;
 import andromeda.ecs.component.ComponentType;
@@ -83,6 +84,10 @@ public class FpsControlSystem extends EcsSystem {
 
         if (direction.length() > 0)
             direction.normalize().mul(speed);
+
+        if (Controller.MOUSE_ENABLED) {
+            direction = new Vector3f(0);
+        }
 
         fpsControl.targetPosition.add(direction);
 

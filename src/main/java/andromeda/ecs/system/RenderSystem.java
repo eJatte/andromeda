@@ -1,7 +1,6 @@
 package andromeda.ecs.system;
 
 import andromeda.ecs.Ecs;
-import andromeda.ecs.component.ComponentType;
 import andromeda.ecs.component.DirectionalLightComponent;
 import andromeda.ecs.component.PointLightComponent;
 import andromeda.ecs.component.Transform;
@@ -24,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static andromeda.ecs.component.ComponentType.*;
+
 public class RenderSystem extends EcsSystem {
 
     private CullPass cullPass;
@@ -36,9 +37,9 @@ public class RenderSystem extends EcsSystem {
     private CameraSystem cameraSystem;
 
     public GBuffer gBuffer;
-    public FrameBuffer frameBuffer;
+    public FrameBuffer hdrBuffer;
     public FrameBuffer depthBuffer;
-    public FrameBuffer finalOutput;
+    public FrameBuffer tonemappingBuffer;
 
     public RenderSystem(Ecs ecs) {
         super(ecs);
@@ -69,12 +70,12 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public Set<Signature> getSignatures() {
-        return Set.of(Signature.of(ComponentType.MODEL), Signature.of(ComponentType.POINT_LIGHT), Signature.of(ComponentType.DIRECTIONAL_LIGHT));
+        return Set.of(Signature.of(TRANSFORM, MODEL), Signature.of(TRANSFORM, POINT_LIGHT), Signature.of(TRANSFORM, DIRECTIONAL_LIGHT));
     }
 
     @Override
     public void update() {
-        List<RenderTarget> renderTargets = cullPass.cullRenderTargets(this.getEntities(Signature.of(ComponentType.MODEL)));
+        List<RenderTarget> renderTargets = cullPass.cullRenderTargets(this.getEntities(TRANSFORM, MODEL));
         Camera camera = cameraSystem.getCurrentMainCamera();
         geometryPass.render(camera, renderTargets, gBuffer);
 
@@ -85,16 +86,16 @@ public class RenderSystem extends EcsSystem {
             shadowPass.render(renderTargets, camera, directionalLight, depthBuffer);
         }
 
-        lightingPass.render(cascades, gBuffer, frameBuffer, depthBuffer, this.getLights(), camera);
+        lightingPass.render(cascades, gBuffer, hdrBuffer, depthBuffer, this.getLights(), camera);
 
-        toneMappingPass.render(frameBuffer, finalOutput);
+        toneMappingPass.render(hdrBuffer, tonemappingBuffer);
 
 
-        showPass.render(finalOutput);
+        showPass.render(tonemappingBuffer);
     }
 
     public int getRenderTextureId() {
-        return finalOutput.renderTexture;
+        return tonemappingBuffer.renderTexture;
     }
 
     private void createDepthBuffer() {
@@ -106,28 +107,28 @@ public class RenderSystem extends EcsSystem {
             gBuffer.destroy();
         gBuffer = GBuffer.create(width, height);
 
-        if (frameBuffer != null)
-            frameBuffer.destroy();
-        frameBuffer = FrameBuffer.create(width, height);
+        if (hdrBuffer != null)
+            hdrBuffer.destroy();
+        hdrBuffer = FrameBuffer.create(width, height, true);
 
-        if (finalOutput != null)
-            finalOutput.destroy();
-        finalOutput = FrameBuffer.create(width, height);
+        if (tonemappingBuffer != null)
+            tonemappingBuffer.destroy();
+        tonemappingBuffer = FrameBuffer.create(width, height);
     }
 
     private List<Light> getLights() {
         List<Light> lights = new ArrayList<>();
-        for (int entity : this.getEntities(Signature.of(ComponentType.POINT_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, POINT_LIGHT)) {
             var pointLightComponent = ecs.getComponent(PointLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
-            lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius()));
+            lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius(), pointLightComponent.intensity));
         }
 
-        for (int entity : this.getEntities(Signature.of(ComponentType.DIRECTIONAL_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
             var directionalLightComponent = ecs.getComponent(DirectionalLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
-            var light = new DirectionalLight(direction.xyz(new Vector3f()), directionalLightComponent.getColor());
+            var light = new DirectionalLight(direction.xyz(new Vector3f()), directionalLightComponent.getColor(), directionalLightComponent.intensity);
             light.castShadows = directionalLightComponent.castShadows;
             lights.add(light);
         }
@@ -135,12 +136,12 @@ public class RenderSystem extends EcsSystem {
     }
 
     private DirectionalLight getShadowCastingDirLight() {
-        for (int entity : this.getEntities(Signature.of(ComponentType.DIRECTIONAL_LIGHT))) {
+        for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
             var dirLight = ecs.getComponent(DirectionalLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
             if (dirLight.castShadows) {
-                var light = new DirectionalLight(direction.xyz(new Vector3f()), dirLight.getColor());
+                var light = new DirectionalLight(direction.xyz(new Vector3f()), dirLight.getColor(), dirLight.intensity);
                 light.castShadows = dirLight.castShadows;
                 return light;
             }

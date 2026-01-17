@@ -1,6 +1,7 @@
 package andromeda.ecs.system;
 
 import andromeda.ecs.Ecs;
+import andromeda.ecs.component.ComponentType;
 
 import java.util.*;
 
@@ -27,6 +28,10 @@ public abstract class EcsSystem {
 
     public Set<Integer> getEntities(Signature signature) {
         return this.entities.get(signature);
+    }
+
+    public Set<Integer> getEntities(ComponentType... componentTypes) {
+        return this.getEntities(Signature.of(componentTypes));
     }
 
     public void init() {

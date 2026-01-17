@@ -5,10 +5,12 @@ import org.joml.Vector3f;
 public class DirectionalLightComponent implements Component {
 
     public Vector3f color;
+    public float intensity;
     public boolean castShadows;
 
     public DirectionalLightComponent() {
         this.color = new Vector3f(1, 1, 1);
+        this.intensity = 1;
         this.castShadows = false;
     }
 
