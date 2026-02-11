@@ -43,4 +43,13 @@ public class PointLightComponent implements Component {
     public Component createComponent() {
         return new PointLightComponent();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new PointLightComponent();
+        comp.color = new Vector3f(this.color);
+        comp.radius = this.radius;
+        comp.intensity = this.intensity;
+        return comp;
+    }
 }

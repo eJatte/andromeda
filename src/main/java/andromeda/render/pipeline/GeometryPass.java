@@ -7,6 +7,9 @@ import andromeda.shader.Program;
 
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL11C.GL_BACK;
+
 public class GeometryPass {
     private Program program;
 
@@ -16,6 +19,8 @@ public class GeometryPass {
 
     public void render(Camera camera, List<RenderTarget> renderTargets, GBuffer gBuffer) {
         gBuffer.bind();
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         renderTargets.forEach(r -> this.render(camera, r));
     }
 
@@ -28,6 +33,7 @@ public class GeometryPass {
         program.setCamera(camera);
         program.setMaterial("material", mesh.getMaterial());
         program.setMat4("model", model);
+        program.setInt("entityId", renderTarget.getEntityId());
 
         geometry.draw();
     }

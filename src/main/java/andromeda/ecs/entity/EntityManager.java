@@ -44,7 +44,7 @@ public class EntityManager {
     }
 
     public void destroyEntity(int entityId) {
-        if (signatures[entityId] != null) {
+        if (entityId >= 0 && signatures[entityId] != null) {
             signatures[entityId] = null;
             availableIds.add(entityId);
             entities.remove(entityId);

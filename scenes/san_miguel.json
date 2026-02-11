@@ -1,0 +1,21 @@
+{
+  "entities": [
+    {
+      "position": [0.0, 0.0, 0.0],
+      "scale": [1, 1, 1],
+      "material": "materials/white_material.json",
+      "geometry": "D:/Models/san-miguel-gltf/san-miguel.gltf",
+      "children": []
+    }
+  ],
+  "lights": [
+    {
+      "rotation": [27.614, 25.492, 13.447],
+      "scale": [2, 2, 2],
+      "color":[0.95, 0.707, 0.414],
+      "intensity": 2.3,
+      "castShadows": true,
+      "type": "directional"
+    }
+  ]
+}

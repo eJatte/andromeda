@@ -7,9 +7,12 @@ public class RenderTarget {
     private Mesh mesh;
     private Matrix4f transform;
 
-    public RenderTarget(Mesh mesh, Matrix4f transform) {
+    private int entityId;
+
+    public RenderTarget(Mesh mesh, Matrix4f transform, int entityId) {
         this.mesh = mesh;
         this.transform = transform;
+        this.entityId = entityId;
     }
 
     public Mesh getMesh() {
@@ -18,5 +21,9 @@ public class RenderTarget {
 
     public Matrix4f getTransform() {
         return transform;
+    }
+
+    public int getEntityId() {
+        return entityId;
     }
 }

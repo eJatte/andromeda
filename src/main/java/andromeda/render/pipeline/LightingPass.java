@@ -25,7 +25,7 @@ public class LightingPass {
         this.quad.upload();
     }
 
-    public void render(Cascade[] cascades, GBuffer gBuffer, FrameBuffer targetBuffer, FrameBuffer depthBuffer, List<Light> lights, Camera camera) {
+    public void render(Cascade[] cascades, GBuffer gBuffer, FrameBuffer targetBuffer, FrameBuffer depthBuffer, FrameBuffer ambOccBuffer, List<Light> lights, Camera camera) {
         program.use();
         program.setCamera(camera);
         program.setLights("lights", lights);
@@ -37,6 +37,8 @@ public class LightingPass {
         program.setInt("gAlbedoSpec", 2);
         program.setInt("gSpecular", 3);
         program.setInt("shadow_map", 4);
+        program.setInt("tOcclusion", 5);
+
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gBuffer.gPosition);
@@ -50,7 +52,9 @@ public class LightingPass {
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, gBuffer.gSpecular);
 
-        depthBuffer.bindTexture(GL_TEXTURE4);
+        depthBuffer.bindTexture("fix me",GL_TEXTURE4);
+
+        ambOccBuffer.bindTexture("color", GL_TEXTURE5);
 
 
         targetBuffer.bind();

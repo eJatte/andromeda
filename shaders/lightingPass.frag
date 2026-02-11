@@ -18,6 +18,7 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D gSpecular;
+uniform sampler2D tOcclusion;
 
 uniform sampler2DArray shadow_map;
 
@@ -114,8 +115,9 @@ void main()
     vec3 t_specular = texture(gSpecular, v_uv).rgb;
     vec3 normal = texture(gNormal, v_uv).rgb;
     vec3 position = texture(gPosition, v_uv).xyz;
+    float occlusion = texture(tOcclusion, v_uv).x;
 
-    vec3 c_ambient = vec3(0.1f, 0.1f, 0.1f) * albedo;
+    vec3 c_ambient = vec3(0.3f) * albedo * occlusion;
     vec3 c_specular = vec3(0);
     vec3 c_diffuse = vec3(0);
 

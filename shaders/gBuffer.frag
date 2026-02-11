@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(location = 0) out vec3 gPosition;
+layout(location = 0) out vec4 gPosition;
 layout(location = 1) out vec3 gNormal;
 layout(location = 2) out vec4 gAlbedoSpecular;
 layout(location = 3) out vec3 gSpecular;
@@ -28,6 +28,8 @@ uniform sampler2D roughness_texture;
 
 uniform bool has_diffuse_texture = false, has_normal_texture = false, has_roughness_texture = false;
 
+uniform int entityId = -1;
+
 uniform Material material;
 
 void main()
@@ -40,7 +42,7 @@ void main()
 
     if (has_diffuse_texture) {
         t_diffuse = texture(diffuse_texture, v_uv*material.texture_scale).rgba;
-        if (t_diffuse.a < 0.99)
+        if (t_diffuse.a == 0)
             discard;
     }
     if (has_normal_texture) {
@@ -56,7 +58,7 @@ void main()
         rougness = texture(roughness_texture, v_uv*material.texture_scale).r;
     }
 
-    gPosition = v_position;
+    gPosition = vec4(v_position, entityId);
     gNormal = n;
     gAlbedoSpecular.rgb = t_diffuse.xyz * material.diffuse;
     // we divide by 256.0f to normalize to 0-1. This means that the max value for shininess is 256.0f.

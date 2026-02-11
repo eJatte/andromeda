@@ -33,6 +33,8 @@
     {
       "rotation": [60, 45, 0],
       "color":[0.95, 0.9, 0.85],
+      "intensity": 2.3,
+      "castShadows": true,
       "type": "directional"
     },
     {

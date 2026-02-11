@@ -47,6 +47,7 @@ public class SceneLoader {
                 var dirLight = ecs.addComponent(DirectionalLightComponent.class, entity);
                 dirLight.setColor(new Vector3f(representation.color));
                 dirLight.setCastShadows(representation.castShadows);
+                dirLight.intensity = representation.intensity;
             } else if (representation.type == LightType.POINT) {
                 int entity = ecs.createEntity();
 
@@ -57,6 +58,7 @@ public class SceneLoader {
                 var pointLight = ecs.addComponent(PointLightComponent.class, entity);
                 pointLight.setColor(new Vector3f(representation.color));
                 pointLight.setRadius(representation.radius);
+                pointLight.intensity = representation.intensity;
             } else {
                 throw new IllegalArgumentException("Need to specify a light type!");
             }

@@ -23,4 +23,17 @@ public class FpsControl implements Component {
     public Component createComponent() {
         return new FpsControl();
     }
+
+    @Override
+    public Component copy() {
+        var comp = new FpsControl();
+        comp.targetPosition = new Vector3f(this.targetPosition);
+        comp.targetYaw = this.targetYaw;
+        comp.targetPitch = this.targetPitch;
+        comp.movementSpeed = this.movementSpeed;
+        comp.rotationSpeed = this.rotationSpeed;
+        comp.movementSmoothing = this.movementSmoothing;
+        comp.rotationSmoothing = this.rotationSmoothing;
+        return comp;
+    }
 }

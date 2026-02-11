@@ -1,11 +1,7 @@
 package andromeda.render.pipeline;
 
 import andromeda.framebuffer.FrameBuffer;
-import andromeda.framebuffer.GBuffer;
-import andromeda.geometry.Geometry;
-import andromeda.geometry.Primitives;
 import andromeda.light.DirectionalLight;
-import andromeda.light.Light;
 import andromeda.projection.Camera;
 import andromeda.projection.OrthographicCamera;
 import andromeda.scene.RenderTarget;
@@ -17,10 +13,6 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.List;
-
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11C.glBindTexture;
-import static org.lwjgl.opengl.GL13C.*;
 
 public class ShadowPass {
     private static final int CASCADE_LEVELS = 4;
