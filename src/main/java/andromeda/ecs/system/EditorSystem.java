@@ -2,7 +2,7 @@ package andromeda.ecs.system;
 
 import andromeda.Controller;
 import andromeda.DeltaTime;
-import andromeda.config.AmbientOcclusionConfig;
+import andromeda.config.GraphicsSettings;
 import andromeda.ecs.Ecs;
 import andromeda.ecs.component.*;
 import andromeda.input.Input;
@@ -192,10 +192,15 @@ public class EditorSystem extends EcsSystem {
     private void graphicsTab() {
         ImGui.begin("Graphics Settings", ImGuiWindowFlags.NoBackground);
         ImGui.text("Ambient Occlusion");
-        AmbientOcclusionConfig.radius = pickFloatSlider("radius", AmbientOcclusionConfig.radius, 0, 3);
-        AmbientOcclusionConfig.power = pickFloatSlider("power", AmbientOcclusionConfig.power, 0.1f, 3);
-        AmbientOcclusionConfig.bias = pickFloatSlider("bias", AmbientOcclusionConfig.bias, 0f, 0.1f);
-        AmbientOcclusionConfig.n_samples = pickInt("n_samples", AmbientOcclusionConfig.n_samples, 1, 1, 128);
+        GraphicsSettings.AmbientOcclusion.radius = pickFloatSlider("radius", GraphicsSettings.AmbientOcclusion.radius, 0, 3);
+        GraphicsSettings.AmbientOcclusion.power = pickFloatSlider("power", GraphicsSettings.AmbientOcclusion.power, 0.1f, 3);
+        GraphicsSettings.AmbientOcclusion.bias = pickFloatSlider("bias", GraphicsSettings.AmbientOcclusion.bias, 0f, 0.1f);
+        GraphicsSettings.AmbientOcclusion.n_samples = pickInt("n_samples", GraphicsSettings.AmbientOcclusion.n_samples, 1, 1, 128);
+
+        ImGui.text("Fog");
+        GraphicsSettings.Fog.color.set(pickColor("color", GraphicsSettings.Fog.color));
+        GraphicsSettings.Fog.power = pickFloatSlider("power", GraphicsSettings.Fog.power, 0.1f, 10);
+        GraphicsSettings.Fog.depth = pickFloat("depth", GraphicsSettings.Fog.depth);
 
         ImGui.end();
     }
