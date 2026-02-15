@@ -1,5 +1,6 @@
 package andromeda.ecs.component;
 
+import andromeda.window.Screen;
 import org.joml.Matrix4f;
 
 public class Perspective implements Component {
@@ -8,7 +9,7 @@ public class Perspective implements Component {
     public float near = 0.1f, far = 100.0f;
 
     public Matrix4f getProjection() {
-        return this.getProjection(aspectRatio);
+        return this.getProjection(Screen.width / (float) Screen.height);
     }
 
     public Matrix4f getProjection(int width, int height) {
