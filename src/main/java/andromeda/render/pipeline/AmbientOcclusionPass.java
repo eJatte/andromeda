@@ -1,18 +1,10 @@
 package andromeda.render.pipeline;
 
-import andromeda.config.AmbientOcclusionConfig;
-import andromeda.ecs.Ecs;
-import andromeda.ecs.component.EcsModel;
-import andromeda.ecs.component.Transform;
+import andromeda.config.GraphicsSettings;
 import andromeda.framebuffer.FrameBuffer;
 import andromeda.framebuffer.GBuffer;
 import andromeda.geometry.Geometry;
-import andromeda.geometry.Mesh;
-import andromeda.geometry.Model;
 import andromeda.geometry.Primitives;
-import andromeda.input.Input;
-import andromeda.input.KeyCode;
-import andromeda.material.Material;
 import andromeda.projection.Camera;
 import andromeda.shader.Program;
 import andromeda.util.GraphicsMath;
@@ -29,7 +21,7 @@ public class AmbientOcclusionPass {
     private Program program, blurProgram;
     private Geometry quad;
     private Vector3f[] hemisphereSamples;
-    private int n_samples = AmbientOcclusionConfig.n_samples;
+    private int n_samples = GraphicsSettings.AmbientOcclusion.n_samples;
     private int noiseTexture;
 
     public AmbientOcclusionPass() {
@@ -41,7 +33,7 @@ public class AmbientOcclusionPass {
         this.quad = Primitives.quad();
         this.quad.upload();
 
-        hemisphereSamples = createSamples(AmbientOcclusionConfig.n_samples);
+        hemisphereSamples = createSamples(GraphicsSettings.AmbientOcclusion.n_samples);
         noiseTexture = createTexture();
     }
 
@@ -86,8 +78,8 @@ public class AmbientOcclusionPass {
     }
 
     public void render(GBuffer gBuffer, FrameBuffer targetBuffer, FrameBuffer blurTarget, Camera camera) {
-        if (n_samples != AmbientOcclusionConfig.n_samples) {
-            n_samples = AmbientOcclusionConfig.n_samples;
+        if (n_samples != GraphicsSettings.AmbientOcclusion.n_samples) {
+            n_samples = GraphicsSettings.AmbientOcclusion.n_samples;
             hemisphereSamples = createSamples(n_samples);
         }
 
@@ -100,10 +92,10 @@ public class AmbientOcclusionPass {
         program.setInt("noise", 3);
         program.setVec3("samples", hemisphereSamples);
 
-        program.setFloat("radius", AmbientOcclusionConfig.radius);
-        program.setInt("n_samples", AmbientOcclusionConfig.n_samples);
-        program.setFloat("power", AmbientOcclusionConfig.power);
-        program.setFloat("bias", AmbientOcclusionConfig.bias);
+        program.setFloat("radius", GraphicsSettings.AmbientOcclusion.radius);
+        program.setInt("n_samples", GraphicsSettings.AmbientOcclusion.n_samples);
+        program.setFloat("power", GraphicsSettings.AmbientOcclusion.power);
+        program.setFloat("bias", GraphicsSettings.AmbientOcclusion.bias);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gBuffer.gPosition);

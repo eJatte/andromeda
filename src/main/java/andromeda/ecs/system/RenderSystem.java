@@ -16,7 +16,6 @@ import andromeda.render.pipeline.*;
 import andromeda.scene.RenderTarget;
 import andromeda.util.Cascade;
 import andromeda.window.Screen;
-import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -37,7 +36,7 @@ public class RenderSystem extends EcsSystem {
     private GeometryPass geometryPass;
     private ShadowPass shadowPass;
     private LightingPass lightingPass;
-    private ToneMappingPass toneMappingPass;
+    private PostProcessingPass postProcessingPass;
     private ShowPass showPass;
     private AmbientOcclusionPass ambientOcclusionPass;
 
@@ -60,7 +59,7 @@ public class RenderSystem extends EcsSystem {
         geometryPass = new GeometryPass();
         shadowPass = new ShadowPass();
         lightingPass = new LightingPass();
-        toneMappingPass = new ToneMappingPass();
+        postProcessingPass = new PostProcessingPass();
         showPass = new ShowPass(ecs);
         ambientOcclusionPass = new AmbientOcclusionPass();
 
@@ -68,7 +67,7 @@ public class RenderSystem extends EcsSystem {
         geometryPass.init();
         shadowPass.init();
         lightingPass.init();
-        toneMappingPass.init();
+        postProcessingPass.init();
         showPass.init();
         ambientOcclusionPass.init();
 
@@ -110,7 +109,7 @@ public class RenderSystem extends EcsSystem {
 
         lightingPass.render(cascades, gBuffer, hdrBuffer, depthBuffer, ambientOcclusionBlurBuffer, this.getLights(), camera);
 
-        toneMappingPass.render(hdrBuffer, tonemappingBuffer);
+        postProcessingPass.render(gBuffer, hdrBuffer, tonemappingBuffer, camera);
 
         if (Input.get().keyUp(KeyCode.KEY_F3)) {
             DEBUG_SSAO = !DEBUG_SSAO;
