@@ -5,11 +5,11 @@ import andromeda.framebuffer.FrameBuffer;
 import andromeda.framebuffer.GBuffer;
 import andromeda.geometry.Geometry;
 import andromeda.geometry.Primitives;
+import andromeda.material.Texture;
 import andromeda.projection.Camera;
 import andromeda.shader.Program;
 
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13C.*;
 
 public class PostProcessingPass {
 
@@ -22,7 +22,7 @@ public class PostProcessingPass {
         this.quad.upload();
     }
 
-    public void render(GBuffer gBuffer, FrameBuffer sourceBuffer, FrameBuffer targetBuffer, Camera camera) {
+    public void render(GBuffer gBuffer, FrameBuffer sourceBuffer, FrameBuffer targetBuffer, Camera camera, int selectedEntityId) {
         targetBuffer.bind();
 
         program.use();
@@ -33,10 +33,15 @@ public class PostProcessingPass {
         program.setFloat("fogDistance", GraphicsSettings.Fog.depth);
         program.setFloat("fogPower", GraphicsSettings.Fog.power);
 
+        program.setInt("selectedEntityId", selectedEntityId);
+
         program.setInt("renderedTexture", 0);
         sourceBuffer.bindTexture("color", GL_TEXTURE0);
         program.setInt("g_position", 1);
         gBuffer.bindTexture("position", GL_TEXTURE1);
+        program.setInt("g_normal", 2);
+        gBuffer.bindTexture("normal", GL_TEXTURE2);
+        program.setInt("highlightTexture", 3);
 
         quad.draw();
     }

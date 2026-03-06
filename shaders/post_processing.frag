@@ -8,6 +8,8 @@ uniform sampler2D renderedTexture;
 
 uniform sampler2D g_position;
 
+uniform sampler2D g_normal;
+
 uniform vec3 eyePos;
 
 uniform mat4x4 projection, view;
@@ -15,6 +17,8 @@ uniform mat4x4 projection, view;
 uniform vec3 fogColor = vec3(0.3f, 0.5f, 0.6f);
 uniform float fogDistance = 100.0f;
 uniform float fogPower = 3;
+
+uniform int selectedEntityId = -1;
 
 float getNormalizedDistance(vec4 position) {
     float normalized_dist = length(eyePos - position.xyz) / fogDistance;
@@ -31,7 +35,16 @@ void main()
 {
     vec4 position = texture(g_position, v_uv);
 
+    float entityId = position.w;
+
     vec3 color = texture(renderedTexture, v_uv).xyz;
+
+    vec3 highlight = vec3(1, 0, 0.3);
+    highlight = selectedEntityId == entityId ? highlight : color;
+
+    float strength = 0.3;
+
+    color =  color * (1 - strength) + highlight * strength;
 
     vec3 tonemapped =  color / (color + vec3(1.0));;
 
