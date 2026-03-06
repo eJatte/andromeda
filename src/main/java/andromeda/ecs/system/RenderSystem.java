@@ -41,6 +41,7 @@ public class RenderSystem extends EcsSystem {
     private AmbientOcclusionPass ambientOcclusionPass;
 
     private CameraSystem cameraSystem;
+    private EditorSystem editorSystem;
 
     public GBuffer gBuffer;
     public ColorBuffer hdrBuffer;
@@ -72,6 +73,7 @@ public class RenderSystem extends EcsSystem {
         ambientOcclusionPass.init();
 
         cameraSystem = ecs.getSystem(CameraSystem.class);
+        editorSystem = ecs.getSystem(EditorSystem.class);
 
         createBuffer(Screen.width, Screen.height);
         createDepthBuffer();
@@ -109,7 +111,7 @@ public class RenderSystem extends EcsSystem {
 
         lightingPass.render(cascades, gBuffer, hdrBuffer, depthBuffer, ambientOcclusionBlurBuffer, this.getLights(), camera);
 
-        postProcessingPass.render(gBuffer, hdrBuffer, tonemappingBuffer, camera);
+        postProcessingPass.render(gBuffer, hdrBuffer, tonemappingBuffer, camera, editorSystem.getSelectedEntityId());
 
         if (Input.get().keyUp(KeyCode.KEY_F3)) {
             DEBUG_SSAO = !DEBUG_SSAO;

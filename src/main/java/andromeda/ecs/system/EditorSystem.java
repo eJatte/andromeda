@@ -49,6 +49,10 @@ public class EditorSystem extends EcsSystem {
         selectedEntityId = selectedEntityId == entityId ? -1 : entityId;
     }
 
+    public int getSelectedEntityId() {
+        return selectedEntityId;
+    }
+
     @Override
     public Set<Signature> getSignatures() {
         return Set.of(Signature.of(ComponentType.TRANSFORM));
