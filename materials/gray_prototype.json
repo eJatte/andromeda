@@ -3,7 +3,7 @@
   "diffuse": [1.0, 1.0, 1.0],
   "specular": [0.05, 0.05, 0.05],
   "shininess": 8,
-  "texture_scale": [400,400],
+  "texture_scale": [1000,1000],
   "diffuse_texture": "textures/prototype/prototype_gray.png",
   "vertex_shader": "shaders/phong.vert",
   "fragment_shader": "shaders/phong.frag"

@@ -12,8 +12,7 @@ public class GraphicsSettings {
     }
 
     public class Fog {
-        public static Vector3f color = new Vector3f(0.3f, 0.5f, 0.6f);
-        public static float depth = 100;
-        public static float power = 3;
+        public static Vector3f color = new Vector3f(86/255.0f,158/255.0f,230/255.0f);
+        public static float density = 0.5f;
     }
 }

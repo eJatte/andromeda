@@ -30,8 +30,7 @@ public class PostProcessingPass {
         program.setCamera(camera);
 
         program.setVec3("fogColor", GraphicsSettings.Fog.color);
-        program.setFloat("fogDistance", GraphicsSettings.Fog.depth);
-        program.setFloat("fogPower", GraphicsSettings.Fog.power);
+        program.setFloat("fogDensity", GraphicsSettings.Fog.density);
 
         program.setInt("selectedEntityId", selectedEntityId);
 

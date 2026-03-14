@@ -65,7 +65,7 @@
     },
     {
       "position": [0.0, 0.0, 0.0],
-      "scale": [400.0, 1.0, 400.0],
+      "scale": [1000.0, 1.0, 1000.0],
       "material": "materials/gray_prototype.json",
       "geometry": "plane",
       "children": []
