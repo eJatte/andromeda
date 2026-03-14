@@ -203,8 +203,7 @@ public class EditorSystem extends EcsSystem {
 
         ImGui.text("Fog");
         GraphicsSettings.Fog.color.set(pickColor("color", GraphicsSettings.Fog.color));
-        GraphicsSettings.Fog.power = pickFloatSlider("power", GraphicsSettings.Fog.power, 0.1f, 10);
-        GraphicsSettings.Fog.depth = pickFloat("depth", GraphicsSettings.Fog.depth);
+        GraphicsSettings.Fog.density = pickFloatSlider("density", GraphicsSettings.Fog.density, 0.01f, 5);
 
         ImGui.end();
     }

@@ -36,8 +36,10 @@ uniform vec3 eyePos;
 
 uniform mat4x4 projection, view;
 
+uniform vec3 fogColor = vec3(0.5,0.6,0.7);
+
 float near = 0.1;
-float far  = 100.0;
+float far  = 400.0;
 
 int getCascadeLevel(float normalized_dist) {
     int level = 0;
@@ -132,8 +134,6 @@ void main()
     float far = 100.0f;
     float normalized_dist = dist / (far - near);
     int cascadeLevel = getCascadeLevel(normalized_dist);
-
-    vec3 fogColor = vec3(0.3f, 0.5f, 0.6f);
 
     if (shininess == 0) {
         FragColor = fogColor;

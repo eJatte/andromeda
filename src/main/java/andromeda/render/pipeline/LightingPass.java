@@ -1,5 +1,6 @@
 package andromeda.render.pipeline;
 
+import andromeda.config.GraphicsSettings;
 import andromeda.framebuffer.FrameBuffer;
 import andromeda.framebuffer.GBuffer;
 import andromeda.geometry.Geometry;
@@ -38,6 +39,7 @@ public class LightingPass {
         program.setInt("gSpecular", 3);
         program.setInt("shadow_map", 4);
         program.setInt("tOcclusion", 5);
+        program.setVec3("fogColor", GraphicsSettings.Fog.color);
 
 
         glActiveTexture(GL_TEXTURE0);

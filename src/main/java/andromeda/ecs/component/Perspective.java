@@ -6,7 +6,7 @@ import org.joml.Matrix4f;
 public class Perspective implements Component {
     public float aspectRatio = 1;
     public float fov = 60;
-    public float near = 0.1f, far = 100.0f;
+    public float near = 0.1f, far = 400.0f;
 
     public Matrix4f getProjection() {
         return this.getProjection(Screen.width / (float) Screen.height);
