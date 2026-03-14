@@ -8,7 +8,8 @@ public enum ComponentType {
     CAMERA(6),
     FPS_CONTROL(7),
     RIGID_BODY(8),
-    PERSPECTIVE(9);
+    PERSPECTIVE(9),
+    SPOT_LIGHT(10);
 
     public final int id;
 

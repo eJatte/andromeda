@@ -28,6 +28,7 @@ public class Ecs {
         componentManager.registerComponent(new FpsControl());
         componentManager.registerComponent(new RigidBody());
         componentManager.registerComponent(new Perspective());
+        componentManager.registerComponent(new SpotLightComponent());
 
         systemManager.registerSystem(new DebugSystem(this));
 
