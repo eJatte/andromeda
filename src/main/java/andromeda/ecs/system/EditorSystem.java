@@ -260,6 +260,11 @@ public class EditorSystem extends EcsSystem {
                 handleDirectionalLightComponent(directionalLight);
             }
 
+            var spotLight = ecs.getComponent(SpotLightComponent.class, selectedEntityId);
+            if (spotLight != null && ImGui.collapsingHeader("Spot Light")) {
+                handleSpotLightComponent(spotLight);
+            }
+
             var fpsCameraComponent = ecs.getComponent(FpsControl.class, selectedEntityId);
             if (fpsCameraComponent != null && ImGui.collapsingHeader("FPS Camera")) {
                 handleFpsCameraComponent(fpsCameraComponent);
@@ -374,6 +379,14 @@ public class EditorSystem extends EcsSystem {
         pointLight.color.set(pickColor("color", pointLight.color));
         pointLight.radius = pickFloat("radius", pointLight.radius, 0.05f);
         pointLight.intensity = pickFloat("intensity", pointLight.intensity, 0.05f);
+    }
+
+    private void handleSpotLightComponent(SpotLightComponent spotLight) {
+        spotLight.color.set(pickColor("color", spotLight.color));
+        spotLight.radius = pickFloat("radius", spotLight.radius, 0.05f);
+        spotLight.intensity = pickFloat("intensity", spotLight.intensity, 0.05f);
+        spotLight.umbra = pickFloat("umbra", spotLight.umbra, 0.05f);
+        spotLight.penumbra = pickFloat("penumbra", spotLight.penumbra, 0.05f);
     }
 
     private void handleDirectionalLightComponent(DirectionalLightComponent directionalLight) {

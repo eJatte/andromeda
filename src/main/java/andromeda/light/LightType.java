@@ -6,5 +6,8 @@ public enum LightType {
     @SerializedName("directional")
     DIRECTIONAL,
     @SerializedName("point")
-    POINT
+    POINT,
+
+    @SerializedName("spot")
+    SPOT
 }

@@ -6,10 +6,13 @@ in vec2 v_uv;
 
 struct Light {
     vec3 position;
+    vec3 direction;
     vec3 diffuse;
     vec3 specular;
     float radius;
     float intensity;
+    float umbra;
+    float penumbra;
     int type;
     bool castShadows;
 };
@@ -169,6 +172,28 @@ void main()
 
                 c_specular += attenuation * specular * t_specular * light.specular * light.intensity;
                 c_diffuse += attenuation * diffuse * light.diffuse * albedo * light.intensity;
+            }
+            else if (light.type == 2) {
+                vec3 d = light.position - position;
+                vec3 l = normalize(d);
+                vec3 s = light.direction;
+
+                vec3 r = reflect(-l, normal);
+
+                float distance = length(d);
+                float attenuation = pow(max(1 - pow(distance / light.radius, 4), 0), 2);
+
+                float theta_s = dot(s, -l);
+                float theta_u = cos(radians(light.umbra));
+                float theta_p = cos(radians(light.penumbra));
+                float t = clamp((theta_s - theta_u) / (theta_p - theta_u), 0, 1);
+                float f_dir = t*t;
+
+                float specular = pow(max(dot(r, v), 0), shininess);
+                float diffuse = max(dot(l, normal), 0);
+
+                c_specular += f_dir * attenuation * specular * t_specular * light.specular * light.intensity;
+                c_diffuse += f_dir * attenuation * diffuse * light.diffuse * albedo * light.intensity;
             }
         }
 

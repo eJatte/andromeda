@@ -3,6 +3,7 @@ package andromeda.shader;
 import andromeda.light.Light;
 import andromeda.light.LightType;
 import andromeda.light.PointLight;
+import andromeda.light.SpotLight;
 import andromeda.material.Material;
 import andromeda.projection.Camera;
 import andromeda.util.Cascade;
@@ -171,6 +172,13 @@ public class Program {
         if (light.type() == LightType.POINT) {
             this.setInt("%s.type".formatted(name), 1);
             this.setFloat("%s.radius".formatted(name), ((PointLight) light).radius);
+        }
+        if (light.type() == LightType.SPOT) {
+            this.setInt("%s.type".formatted(name), 2);
+            this.setFloat("%s.radius".formatted(name), ((SpotLight) light).radius);
+            this.setFloat("%s.umbra".formatted(name), ((SpotLight) light).umbra);
+            this.setFloat("%s.penumbra".formatted(name), ((SpotLight) light).penumbra);
+            this.setVec3("%s.direction".formatted(name), ((SpotLight) light).direction);
         }
     }
 

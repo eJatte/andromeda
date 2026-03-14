@@ -3,14 +3,18 @@ package andromeda.ecs.system;
 import andromeda.ecs.Ecs;
 import andromeda.ecs.component.DirectionalLightComponent;
 import andromeda.ecs.component.PointLightComponent;
+import andromeda.ecs.component.SpotLightComponent;
 import andromeda.ecs.component.Transform;
 import andromeda.event.EventHandler;
-import andromeda.framebuffer.*;
+import andromeda.framebuffer.ColorBuffer;
+import andromeda.framebuffer.DepthBufferArray;
+import andromeda.framebuffer.GBuffer;
 import andromeda.input.Input;
 import andromeda.input.KeyCode;
 import andromeda.light.DirectionalLight;
 import andromeda.light.Light;
 import andromeda.light.PointLight;
+import andromeda.light.SpotLight;
 import andromeda.projection.Camera;
 import andromeda.render.pipeline.*;
 import andromeda.scene.RenderTarget;
@@ -26,7 +30,8 @@ import java.util.Set;
 
 import static andromeda.ecs.component.ComponentType.*;
 import static org.lwjgl.opengl.GL11C.*;
-import static org.lwjgl.opengl.GL30C.*;
+import static org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0;
+import static org.lwjgl.opengl.GL30C.GL_RGB16F;
 
 public class RenderSystem extends EcsSystem {
 
@@ -91,7 +96,7 @@ public class RenderSystem extends EcsSystem {
 
     @Override
     public Set<Signature> getSignatures() {
-        return Set.of(Signature.of(TRANSFORM, MODEL), Signature.of(TRANSFORM, POINT_LIGHT), Signature.of(TRANSFORM, DIRECTIONAL_LIGHT));
+        return Set.of(Signature.of(TRANSFORM, MODEL), Signature.of(TRANSFORM, POINT_LIGHT), Signature.of(TRANSFORM, DIRECTIONAL_LIGHT), Signature.of(TRANSFORM, SPOT_LIGHT));
     }
 
     @Override
@@ -161,6 +166,15 @@ public class RenderSystem extends EcsSystem {
             var pointLightComponent = ecs.getComponent(PointLightComponent.class, entity);
             var transform = ecs.getComponent(Transform.class, entity);
             lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius(), pointLightComponent.intensity));
+        }
+
+        for (int entity : this.getEntities(TRANSFORM, SPOT_LIGHT)) {
+            var spotLightComponent = ecs.getComponent(SpotLightComponent.class, entity);
+            var transform = ecs.getComponent(Transform.class, entity);
+            var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
+            lights.add(new SpotLight(transform.getPosition(), direction.xyz(new Vector3f()),
+                    spotLightComponent.getColor(), spotLightComponent.getRadius(), spotLightComponent.umbra,
+                    spotLightComponent.penumbra, spotLightComponent.intensity));
         }
 
         for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
