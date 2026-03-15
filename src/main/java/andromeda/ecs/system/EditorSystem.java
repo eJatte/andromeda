@@ -205,6 +205,9 @@ public class EditorSystem extends EcsSystem {
         GraphicsSettings.Fog.color.set(pickColor("color", GraphicsSettings.Fog.color));
         GraphicsSettings.Fog.density = pickFloatSlider("density", GraphicsSettings.Fog.density, 0.01f, 5);
 
+        ImGui.text("Lighting");
+        GraphicsSettings.Lighting.ambient.set(pickColor("ambient", GraphicsSettings.Lighting.ambient));
+
         ImGui.end();
     }
 

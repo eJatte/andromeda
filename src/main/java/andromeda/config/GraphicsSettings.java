@@ -15,4 +15,8 @@ public class GraphicsSettings {
         public static Vector3f color = new Vector3f(86/255.0f,158/255.0f,230/255.0f);
         public static float density = 0.5f;
     }
+
+    public class Lighting {
+        public static Vector3f ambient = new Vector3f(0);
+    }
 }
