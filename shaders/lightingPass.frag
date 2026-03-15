@@ -37,6 +37,7 @@ uniform vec3 eyePos;
 uniform mat4x4 projection, view;
 
 uniform vec3 fogColor = vec3(0.5,0.6,0.7);
+uniform vec3 ambientColor = vec3(0.3f);
 
 float near = 0.1;
 float far  = 400.0;
@@ -122,7 +123,7 @@ void main()
     vec3 position = texture(gPosition, v_uv).xyz;
     float occlusion = texture(tOcclusion, v_uv).x;
 
-    vec3 c_ambient = vec3(0.3f) * albedo * occlusion;
+    vec3 c_ambient = ambientColor * albedo * occlusion;
     vec3 c_specular = vec3(0);
     vec3 c_diffuse = vec3(0);
 

@@ -40,6 +40,7 @@ public class LightingPass {
         program.setInt("shadow_map", 4);
         program.setInt("tOcclusion", 5);
         program.setVec3("fogColor", GraphicsSettings.Fog.color);
+        program.setVec3("ambientColor", GraphicsSettings.Lighting.ambient);
 
 
         glActiveTexture(GL_TEXTURE0);
