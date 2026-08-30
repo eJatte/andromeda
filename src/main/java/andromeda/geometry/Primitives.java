@@ -393,6 +393,21 @@ public class Primitives {
         return new Geometry(vertices, uvs, indices);
     }
 
+    public static Geometry circle() {
+        int segments = 80;
+        var vertices = new Vector3f[segments];
+
+        for (int i = 0; i < segments; i++) {
+            float theta = 2.0f * 3.1415926f * i / segments;
+
+            float x = (float) Math.cos(theta);
+            float y = (float) Math.sin(theta);
+            vertices[i] = new Vector3f(x, y, 0);
+        }
+
+        return new Geometry(vertices);
+    }
+
     public static int getIndex(int x, int y, Vector2i v_size) {
         return x + y * v_size.x;
     }

@@ -43,6 +43,7 @@ public class Ecs {
 
         systemManager.registerSystem(new RenderSystem(this));
         systemManager.registerSystem(new EditorSystem(this));
+        systemManager.registerSystem(new DebugRenderSystem(this));
 
         systemManager.getSystems().forEach(EcsSystem::init);
     }

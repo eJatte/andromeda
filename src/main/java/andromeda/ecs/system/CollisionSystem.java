@@ -20,12 +20,12 @@ public class CollisionSystem extends EcsSystem {
 
     @Override
     public Set<Signature> getSignatures() {
-        return Set.of(Signature.of(ComponentType.SphereCollider));
+        return Set.of(Signature.of(ComponentType.SPHERE_COLLIDER));
     }
 
     @Override
     public void update() {
-        Integer[] entities = this.getEntities(ComponentType.SphereCollider).toArray(Integer[]::new);
+        Integer[] entities = this.getEntities(ComponentType.SPHERE_COLLIDER).toArray(Integer[]::new);
         for(int i = 0; i < entities.length; i++) {
             int e1 = entities[i];
             SphereCollider c1 = ecs.getComponent(SphereCollider.class, e1);
