@@ -29,6 +29,10 @@ public class Ecs {
         componentManager.registerComponent(new RigidBody());
         componentManager.registerComponent(new Perspective());
         componentManager.registerComponent(new SpotLightComponent());
+        componentManager.registerComponent(new SphereCollider());
+
+        systemManager.registerSystem(new CollisionSystem(this));
+        systemManager.registerSystem(new PhysicsSystem(this));
 
         systemManager.registerSystem(new DebugSystem(this));
 
@@ -37,7 +41,6 @@ public class Ecs {
         systemManager.registerSystem(new CameraSystem(this));
         systemManager.registerSystem(new FpsControlSystem(this));
 
-        systemManager.registerSystem(new PhysicsSystem(this));
         systemManager.registerSystem(new RenderSystem(this));
         systemManager.registerSystem(new EditorSystem(this));
 
@@ -48,6 +51,7 @@ public class Ecs {
         systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.LOOP).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.RENDER).forEach(EcsSystem::update);
+        systemManager.getSystems(SystemType.CLEANUP).forEach(EcsSystem::update);
     }
 
     public int createEntity() {
