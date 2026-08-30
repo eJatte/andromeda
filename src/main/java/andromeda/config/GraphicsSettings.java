@@ -17,6 +17,6 @@ public class GraphicsSettings {
     }
 
     public class Lighting {
-        public static Vector3f ambient = new Vector3f(0);
+        public static Vector3f ambient = new Vector3f(86/255.0f,158/255.0f,230/255.0f).mul(0.2f);
     }
 }

@@ -10,16 +10,16 @@ public class EntityManager {
 
     private Signature[] signatures;
 
-    private Queue<Integer> availableIds;
+    private Stack<Integer> availableIds;
 
     private Set<Integer> entities;
 
     public EntityManager() {
         signatures = new Signature[MAX_ENTITIES];
-        availableIds = new LinkedList<>();
+        availableIds = new Stack<>();
         entities = new HashSet<>();
-        for (int i = 0; i < MAX_ENTITIES; i++) {
-            availableIds.add(i);
+        for (int i = MAX_ENTITIES; i > 0; i--) {
+            availableIds.add(i-1);
         }
     }
 
@@ -33,7 +33,7 @@ public class EntityManager {
 
     public int createEntity() {
         if (!availableIds.isEmpty()) {
-            var entityId = availableIds.remove();
+            var entityId = availableIds.pop();
             signatures[entityId] = Signature.of();
             entities.add(entityId);
             return entityId;
@@ -46,7 +46,7 @@ public class EntityManager {
     public void destroyEntity(int entityId) {
         if (entityId >= 0 && signatures[entityId] != null) {
             signatures[entityId] = null;
-            availableIds.add(entityId);
+            availableIds.push(entityId);
             entities.remove(entityId);
         }
     }

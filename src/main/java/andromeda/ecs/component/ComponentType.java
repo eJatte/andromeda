@@ -9,7 +9,8 @@ public enum ComponentType {
     FPS_CONTROL(7),
     RIGID_BODY(8),
     PERSPECTIVE(9),
-    SPOT_LIGHT(10);
+    SPOT_LIGHT(10),
+    SPHERE_COLLIDER(12);
 
     public final int id;
 
