@@ -2,6 +2,7 @@ package andromeda.ecs.system;
 
 import andromeda.Controller;
 import andromeda.DeltaTime;
+import andromeda.config.DebugSettings;
 import andromeda.config.GraphicsSettings;
 import andromeda.ecs.Ecs;
 import andromeda.ecs.component.*;
@@ -74,6 +75,7 @@ public class EditorSystem extends EcsSystem {
         if (!this.ecs.getSystem(PropertiesSystem.class).hideGUI()) {
             performanceTab();
             graphicsTab();
+            debugTab();
             entitiesTab();
         }
 
@@ -211,6 +213,13 @@ public class EditorSystem extends EcsSystem {
         ImGui.end();
     }
 
+    private void debugTab() {
+        ImGui.begin("Debug Settings", ImGuiWindowFlags.NoBackground);
+        DebugSettings.Colliders.enabled = pickBoolean("Show Colliders", DebugSettings.Colliders.enabled);
+
+        ImGui.end();
+    }
+
     private float averageFps(float[] frame_times) {
         float avg = 0;
         for (var f : frame_times) {
@@ -270,6 +279,15 @@ public class EditorSystem extends EcsSystem {
             var fpsCameraComponent = ecs.getComponent(FpsControl.class, selectedEntityId);
             if (fpsCameraComponent != null && ImGui.collapsingHeader("FPS Camera")) {
                 handleFpsCameraComponent(fpsCameraComponent);
+            }
+
+            var sphereCollider = ecs.getComponent(SphereCollider.class, selectedEntityId);
+            if (sphereCollider != null && ImGui.collapsingHeader("Sphere Collider")) {
+                handleSphereColliderComponent(sphereCollider);
+                sphereCollider.debug = true;
+            }
+            else if (sphereCollider != null && sphereCollider.debug) {
+                sphereCollider.debug = false;
             }
 
             handleAddComponent(selectedEntityId);
@@ -402,6 +420,10 @@ public class EditorSystem extends EcsSystem {
         fpsControl.movementSmoothing = pickFloatSlider("M Smoothing", fpsControl.movementSmoothing);
         fpsControl.rotationSpeed = pickFloatSlider("R Speed", fpsControl.rotationSpeed);
         fpsControl.rotationSmoothing = pickFloatSlider("R Smoothing", fpsControl.rotationSmoothing);
+    }
+
+    private void handleSphereColliderComponent(SphereCollider sphereCollider) {
+        sphereCollider.radius = pickFloat("radius", sphereCollider.radius, 0.05f);
     }
 
     private void handleMaterial(Material material) {

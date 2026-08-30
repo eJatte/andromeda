@@ -15,6 +15,10 @@ public class Geometry {
     private int[] indices = {};
     private int m_vao, m_vbo, m_ebo;
 
+    public Geometry(Vector3f[] positions) {
+        this.vertices = Arrays.stream(positions).map(Vertex::new).toArray(Vertex[]::new);
+    }
+
     public Geometry(Vector3f[] positions, int[] indices) {
         this.vertices = Arrays.stream(positions).map(Vertex::new).toArray(Vertex[]::new);
         this.indices = indices;
@@ -76,6 +80,13 @@ public class Geometry {
         } else {
             glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0L);
         }
+        glBindVertexArray(0);
+    }
+
+    public void drawLineLoop() {
+        glBindVertexArray(m_vao);
+        glLineWidth(2.0f);
+        glDrawArrays(GL_LINE_LOOP, 0, this.vertices.length);
         glBindVertexArray(0);
     }
 

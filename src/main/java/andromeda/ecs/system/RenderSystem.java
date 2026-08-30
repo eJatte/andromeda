@@ -7,6 +7,7 @@ import andromeda.ecs.component.SpotLightComponent;
 import andromeda.ecs.component.Transform;
 import andromeda.event.EventHandler;
 import andromeda.framebuffer.ColorBuffer;
+import andromeda.framebuffer.DepthBuffer;
 import andromeda.framebuffer.DepthBufferArray;
 import andromeda.framebuffer.GBuffer;
 import andromeda.input.Input;
@@ -126,6 +127,10 @@ public class RenderSystem extends EcsSystem {
             showPass.render(ambientOcclusionBlurBuffer.color);
         else
             showPass.render(tonemappingBuffer.color);
+    }
+
+    public GBuffer getGBuffer() {
+        return this.gBuffer;
     }
 
     private void createDepthBuffer() {

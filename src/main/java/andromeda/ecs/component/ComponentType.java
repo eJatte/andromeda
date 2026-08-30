@@ -10,7 +10,7 @@ public enum ComponentType {
     RIGID_BODY(8),
     PERSPECTIVE(9),
     SPOT_LIGHT(10),
-    SPHERE_COLLIDER(12);
+    SPHERE_COLLIDER(11);
 
     public final int id;
 
