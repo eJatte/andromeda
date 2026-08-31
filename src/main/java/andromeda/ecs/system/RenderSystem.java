@@ -21,6 +21,7 @@ import andromeda.render.pipeline.*;
 import andromeda.scene.RenderTarget;
 import andromeda.util.Cascade;
 import andromeda.window.Screen;
+import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -48,6 +49,7 @@ public class RenderSystem extends EcsSystem {
 
     private CameraSystem cameraSystem;
     private EditorSystem editorSystem;
+    private TransformSystem transformSystem;
 
     public GBuffer gBuffer;
     public ColorBuffer hdrBuffer;
@@ -80,6 +82,7 @@ public class RenderSystem extends EcsSystem {
 
         cameraSystem = ecs.getSystem(CameraSystem.class);
         editorSystem = ecs.getSystem(EditorSystem.class);
+        transformSystem = ecs.getSystem(TransformSystem.class);
 
         createBuffer(Screen.width, Screen.height);
         createDepthBuffer();
@@ -169,23 +172,24 @@ public class RenderSystem extends EcsSystem {
         List<Light> lights = new ArrayList<>();
         for (int entity : this.getEntities(TRANSFORM, POINT_LIGHT)) {
             var pointLightComponent = ecs.getComponent(PointLightComponent.class, entity);
-            var transform = ecs.getComponent(Transform.class, entity);
-            lights.add(new PointLight(transform.getPosition(), pointLightComponent.getColor(), pointLightComponent.getRadius(), pointLightComponent.intensity));
+            Vector3f position = transformSystem.getGlobalPosition(entity);
+            lights.add(new PointLight(position, pointLightComponent.getColor(), pointLightComponent.getRadius(), pointLightComponent.intensity));
         }
 
         for (int entity : this.getEntities(TRANSFORM, SPOT_LIGHT)) {
             var spotLightComponent = ecs.getComponent(SpotLightComponent.class, entity);
-            var transform = ecs.getComponent(Transform.class, entity);
-            var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
-            lights.add(new SpotLight(transform.getPosition(), direction.xyz(new Vector3f()),
+            Vector3f position = transformSystem.getGlobalPosition(entity);
+            Matrix4f globalTransform = transformSystem.getGlobalTransform(entity);
+            var direction = new Vector4f(0, 0, 1, 0).mul(globalTransform);
+            lights.add(new SpotLight(position, direction.xyz(new Vector3f()),
                     spotLightComponent.getColor(), spotLightComponent.getRadius(), spotLightComponent.umbra,
                     spotLightComponent.penumbra, spotLightComponent.intensity));
         }
 
         for (int entity : this.getEntities(TRANSFORM, DIRECTIONAL_LIGHT)) {
             var directionalLightComponent = ecs.getComponent(DirectionalLightComponent.class, entity);
-            var transform = ecs.getComponent(Transform.class, entity);
-            var direction = new Vector4f(0, 1, 0, 0).mul(transform.getLocalTransform());
+            Matrix4f globalTransform = transformSystem.getGlobalTransform(entity);
+            var direction = new Vector4f(0, 1, 0, 0).mul(globalTransform);
             var light = new DirectionalLight(direction.xyz(new Vector3f()), directionalLightComponent.getColor(), directionalLightComponent.intensity);
             light.castShadows = directionalLightComponent.castShadows;
             lights.add(light);

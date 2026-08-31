@@ -274,9 +274,14 @@ public class EditorSystem extends EcsSystem {
 
         ImGui.separator();
         if (ImGui.button("Create Entity")) {
-            ecs.createEntity();
+            setSelectedEntityId(ecs.createEntity());
         }
         ImGui.sameLine();
+        if (ImGui.button("Create Child")) {
+            int newEntity = ecs.createEntity();
+            transformSystem.setParent(newEntity, selectedEntityId);
+            setSelectedEntityId(newEntity);
+        }
         if (ImGui.button("Delete Entity")) {
             ecs.destroyEntity(selectedEntityId);
         }
