@@ -52,6 +52,7 @@ public class Ecs {
         systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.LOOP).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.RENDER).forEach(EcsSystem::update);
+        systemManager.getSystems(SystemType.DEBUG_RENDER).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.CLEANUP).forEach(EcsSystem::update);
     }
 
