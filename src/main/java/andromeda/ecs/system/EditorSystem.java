@@ -123,7 +123,9 @@ public class EditorSystem extends EcsSystem {
                 this.setSelectedEntityId(this.renderSystem.readEntityId(mPos));
             }
             if (Input.get().keyUp(KeyCode.KEY_D) && Input.get().key(KeyCode.KEY_LEFT_CONTROL) && selectedEntityId != -1) {
-                setSelectedEntityId(duplicateEntity(selectedEntityId, -1));
+                var transform = ecs.getComponent(Transform.class, selectedEntityId);
+                int newEntity = duplicateEntity(selectedEntityId, transform.getParentEntityId());
+                setSelectedEntityId(newEntity);
             }
         }
     }
@@ -147,7 +149,6 @@ public class EditorSystem extends EcsSystem {
             transformSystem.setParent(newEntity, parentId);
         } else {
             transform.setParentEntityId(-1);
-            transform.setLocalTransform(transformSystem.getGlobalTransform(entityId));
         }
         return newEntity;
     }
@@ -274,11 +275,16 @@ public class EditorSystem extends EcsSystem {
 
         ImGui.separator();
         if (ImGui.button("Create Entity")) {
-            setSelectedEntityId(ecs.createEntity());
+            int newEntity = ecs.createEntity();
+            Transform transform = ecs.getComponent(Transform.class, newEntity);
+            transform.setName("Entity "+newEntity);
+            setSelectedEntityId(newEntity);
         }
         ImGui.sameLine();
         if (ImGui.button("Create Child")) {
             int newEntity = ecs.createEntity();
+            Transform transform = ecs.getComponent(Transform.class, newEntity);
+            transform.setName("Entity "+newEntity);
             transformSystem.setParent(newEntity, selectedEntityId);
             setSelectedEntityId(newEntity);
         }
