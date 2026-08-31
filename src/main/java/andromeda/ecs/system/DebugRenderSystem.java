@@ -60,7 +60,6 @@ public class DebugRenderSystem extends EcsSystem {
 
         GBuffer gBuffer = renderSystem.getGBuffer();
 
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         for (int entityId : debugEntities) {
             SphereCollider sphereCollider = ecs.getComponent(SphereCollider.class, entityId);
@@ -99,6 +98,6 @@ public class DebugRenderSystem extends EcsSystem {
 
     @Override
     public SystemType type() {
-        return SystemType.RENDER;
+        return SystemType.DEBUG_RENDER;
     }
 }
