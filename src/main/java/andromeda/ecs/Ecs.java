@@ -2,6 +2,10 @@ package andromeda.ecs;
 
 import andromeda.ecs.component.*;
 import andromeda.ecs.entity.EntityManager;
+import andromeda.ecs.event.CollisionEvent;
+import andromeda.ecs.event.Event;
+import andromeda.ecs.event.EventListener;
+import andromeda.ecs.event.EventManager;
 import andromeda.ecs.system.EcsSystem;
 import andromeda.ecs.system.*;
 
@@ -12,11 +16,13 @@ public class Ecs {
     private final ComponentManager componentManager;
     private final EntityManager entityManager;
     private final SystemManager systemManager;
+    private final EventManager eventManager;
 
     public Ecs() {
         componentManager = new ComponentManager();
         entityManager = new EntityManager();
         systemManager = new SystemManager();
+        eventManager = new EventManager();
     }
 
     public void init() {
@@ -45,12 +51,15 @@ public class Ecs {
         systemManager.registerSystem(new EditorSystem(this));
         systemManager.registerSystem(new DebugRenderSystem(this));
 
+        eventManager.registerEvent(new CollisionEvent());
+
         systemManager.getSystems().forEach(EcsSystem::init);
     }
 
     public void update() {
         systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.LOOP).forEach(EcsSystem::update);
+        eventManager.triggerEvents();
         systemManager.getSystems(SystemType.RENDER).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.DEBUG_RENDER).forEach(EcsSystem::update);
         systemManager.getSystems(SystemType.CLEANUP).forEach(EcsSystem::update);
@@ -107,6 +116,14 @@ public class Ecs {
 
     public Collection<Component> getComponents() {
         return componentManager.getComponents();
+    }
+
+    public <T extends Event> void raiseEvent(Class<T> clazz, T event) {
+        eventManager.raiseEvent(clazz, event);
+    }
+
+    public <T extends Event> void registerListener(Class<T> clazz, EventListener<T> eventListener) {
+        eventManager.registerListener(clazz, eventListener);
     }
 
     public void query(ComponentType... componentTypes ) {

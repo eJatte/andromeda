@@ -4,6 +4,7 @@ import andromeda.ecs.Ecs;
 import andromeda.ecs.component.ComponentType;
 import andromeda.ecs.component.SphereCollider;
 import andromeda.ecs.component.Transform;
+import andromeda.ecs.event.CollisionEvent;
 
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class CollisionSystem extends EcsSystem {
 
     @Override
     public void init() {
-
+        ecs.registerListener(CollisionEvent.class, event -> System.out.println(event.entity_a + " collided with " + event.entity_b));
     }
 
     @Override
@@ -36,7 +37,10 @@ public class CollisionSystem extends EcsSystem {
                 Transform t2 = ecs.getComponent(Transform.class, e2);
                 float d = t1.getPosition().distance(t2.getPosition());
                 if (d < c1.radius + c2.radius) {
-                    System.out.println("Collision between " + e1 + " and " + e2);
+                    var event = new CollisionEvent();
+                    event.entity_a = e1;
+                    event.entity_b = e2;
+                    ecs.raiseEvent(CollisionEvent.class, event);
                 }
             }
         }
