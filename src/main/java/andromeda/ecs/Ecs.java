@@ -58,6 +58,7 @@ public class Ecs {
 
     public void update() {
         systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
+        eventManager.triggerEvents();
         systemManager.getSystems(SystemType.LOOP).forEach(EcsSystem::update);
         eventManager.triggerEvents();
         systemManager.getSystems(SystemType.RENDER).forEach(EcsSystem::update);

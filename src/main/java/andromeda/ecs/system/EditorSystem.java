@@ -16,17 +16,13 @@ import imgui.ImVec2;
 import imgui.extension.imguizmo.ImGuizmo;
 import imgui.extension.imguizmo.flag.Mode;
 import imgui.extension.imguizmo.flag.Operation;
-import imgui.flag.ImGuiDockNodeFlags;
-import imgui.flag.ImGuiHoveredFlags;
-import imgui.flag.ImGuiTreeNodeFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImBoolean;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +53,8 @@ public class EditorSystem extends EcsSystem {
                 new DirectionalLightComponentHandler(),
                 new SpotLightComponentHandler(),
                 new SphereColliderComponentHandler(),
-                new FpsCameraComponentHandler()
+                new FpsCameraComponentHandler(),
+                new RigidBodyComponentHandler()
         );
     }
 
@@ -277,14 +274,14 @@ public class EditorSystem extends EcsSystem {
         if (ImGui.button("Create Entity")) {
             int newEntity = ecs.createEntity();
             Transform transform = ecs.getComponent(Transform.class, newEntity);
-            transform.setName("Entity "+newEntity);
+            transform.setName("Entity " + newEntity);
             setSelectedEntityId(newEntity);
         }
         ImGui.sameLine();
         if (ImGui.button("Create Child")) {
             int newEntity = ecs.createEntity();
             Transform transform = ecs.getComponent(Transform.class, newEntity);
-            transform.setName("Entity "+newEntity);
+            transform.setName("Entity " + newEntity);
             transformSystem.setParent(newEntity, selectedEntityId);
             setSelectedEntityId(newEntity);
         }
@@ -452,6 +449,11 @@ public class EditorSystem extends EcsSystem {
         return v3;
     }
 
+    private static void displayVector3f(String name, Vector3f original) {
+        float[] v3 = new float[]{original.x, original.y, original.z};
+        ImGui.inputFloat3(name, v3, ImGuiInputTextFlags.ReadOnly);
+    }
+
     @Override
     public SystemType type() {
         return SystemType.RENDER;
@@ -511,6 +513,27 @@ public class EditorSystem extends EcsSystem {
         @Override
         public Class<SphereCollider> getType() {
             return SphereCollider.class;
+        }
+    }
+
+    static class RigidBodyComponentHandler extends ComponentHandler<RigidBody> {
+
+        @Override
+        public void whileActive(RigidBody rigidBody, int entityId) {
+            rigidBody.mass = pickFloat("mass", rigidBody.mass, 0.05f);
+            displayVector3f("force", rigidBody.force);
+
+            rigidBody.velocity = new Vector3f(pickVector3f("velocity", rigidBody.velocity));
+        }
+
+        @Override
+        public String title() {
+            return "RigidBody";
+        }
+
+        @Override
+        public Class<RigidBody> getType() {
+            return RigidBody.class;
         }
     }
 
