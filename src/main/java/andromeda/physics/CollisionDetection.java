@@ -34,7 +34,9 @@ public class CollisionDetection {
 
             if(depth <= 0) {
                 Vector3f normal = new Vector3f(0, diff < 0 ? -1 : 1, 0);
-                collisions.add(new Collision(normal, Math.abs(depth), e1, -1));
+                float distanceToContact = c1.radius - depth * 0.5f;
+                Vector3f contactPoint = normal.mul(distanceToContact, new Vector3f()).add(t1.getPosition());
+                collisions.add(new Collision(normal, Math.abs(depth), contactPoint, e1, -1));
             }
         }
 
@@ -47,6 +49,14 @@ public class CollisionDetection {
         float distance = diff.length();
         float depth = distance - (c_a.radius + c_b.radius);
 
-        return depth <= 0 ? Optional.of(new Collision(diff.normalize(), Math.abs(depth), e_a, e_b)) : Optional.empty();
+        if (depth <= 0) {
+            float distanceToContact = c_a.radius - depth * 0.5f;
+            Vector3f normal = diff.normalize();
+            Vector3f contactPoint = normal.mul(distanceToContact, new Vector3f()).add(t_a.getPosition());
+            return Optional.of(new Collision(normal, Math.abs(depth), contactPoint, e_a, e_b));
+        }
+        else {
+            return Optional.empty();
+        }
     }
 }
