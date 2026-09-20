@@ -34,6 +34,11 @@ public class SerializingModelLoader {
 
     private SerializableScene loadAiScene(AIScene aiScene) {
         SerializableModel[] m = loadModels(aiScene);
+        // if it is a singular model we do not want a "root" node
+        if (m.length == 2) {
+            var model = m[1];
+            m = new SerializableModel[]{ new SerializableModel(model.mesh_indices(), -1, model.transform(), model.name())};
+        }
         SerializableMesh[] meshes = loadMeshes(aiScene);
         SerializableMaterial[] materials = loadMaterials(aiScene);
 

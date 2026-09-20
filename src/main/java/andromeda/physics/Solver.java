@@ -35,9 +35,7 @@ public class Solver {
 
             t_a.translate(correction.mul(r_a.inverseMass, new Vector3f()).negate());
 
-            Vector3f j = impulseFloor(collision, ecs);
-
-            r_a.velocity.sub(j.mul(r_a.inverseMass));
+            impulseFloor(collision, ecs);
 
             return;
         }
@@ -59,13 +57,11 @@ public class Solver {
         t_a.translate(correction.mul(r_a.inverseMass, new Vector3f()).negate());
         t_b.translate(correction.mul(r_b.inverseMass, new Vector3f()));
 
-        Vector3f j = impulse(collision, ecs);
 
-        r_a.velocity.sub(j.mul(r_a.inverseMass));
-        r_b.velocity.add(j.mul(r_b.inverseMass));
+        applyImpulse(collision, ecs);
     }
 
-    private static Vector3f impulse(Collision collision, Ecs ecs) {
+    private static void applyImpulse(Collision collision, Ecs ecs) {
         Transform t_a = ecs.getComponent(Transform.class, collision.entity_a());
         RigidBody r_a = ecs.getComponent(RigidBody.class, collision.entity_a());
         SphereCollider s_a = ecs.getComponent(SphereCollider.class, collision.entity_a());
@@ -88,12 +84,22 @@ public class Solver {
         float m_ai = r_a.inverseMass;
         float m_bi = r_b.inverseMass;
 
-        float j = (-(1 + e) * v_r.dot(n)) / (m_ai + m_bi + (f(I_a, rv_a, n).add(f(I_b, rv_b, n))).dot(n));
+        float j_s = (-(1 + e) * v_r.dot(n)) / (m_ai + m_bi + (f(I_a, rv_a, n).add(f(I_b, rv_b, n))).dot(n));
 
-        return n.mul(j, new Vector3f());
+        Vector3f j = n.mul(j_s, new Vector3f());
+
+        r_a.velocity.sub(j.mul(r_a.inverseMass));
+        r_b.velocity.add(j.mul(r_b.inverseMass));
+
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_s));
+        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_s));
     }
 
-    private static Vector3f impulseFloor(Collision collision, Ecs ecs) {
+    private static Vector3f calculateAngularVelocity(Vector3f tensor, Vector3f r, Vector3f n) {
+        return tensor.mul(r.cross(n, new Vector3f()), new Vector3f());
+    }
+
+    private static void impulseFloor(Collision collision, Ecs ecs) {
         Transform t_a = ecs.getComponent(Transform.class, collision.entity_a());
         RigidBody r_a = ecs.getComponent(RigidBody.class, collision.entity_a());
         SphereCollider s_a = ecs.getComponent(SphereCollider.class, collision.entity_a());
@@ -110,13 +116,17 @@ public class Solver {
 
         float m_ai = r_a.inverseMass;
 
-        float j = (-(1 + e) * v_r.dot(n)) / (m_ai + (f(I_a, rv_a, n)).dot(n));
+        float j_s = (-(1 + e) * v_r.dot(n)) / (m_ai + (f(I_a, rv_a, n)).dot(n));
 
-        return n.mul(j, new Vector3f());
+        Vector3f j = n.mul(j_s, new Vector3f());
+
+        r_a.velocity.sub(j.mul(r_a.inverseMass));
+
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_s));
     }
 
     private static Vector3f f(Vector3f tensor, Vector3f r, Vector3f n) {
-        return tensor.mul(r.cross(n).cross(r));
+        return tensor.mul(r.cross(n, new Vector3f()).cross(r, new Vector3f()), new Vector3f());
     }
 
     private static Vector3f calculateSphericalInertiaTensor(float mass, float radius) {

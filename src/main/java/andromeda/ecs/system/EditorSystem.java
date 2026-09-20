@@ -524,6 +524,8 @@ public class EditorSystem extends EcsSystem {
             displayVector3f("force", rigidBody.force);
 
             rigidBody.velocity = new Vector3f(pickVector3f("velocity", rigidBody.velocity));
+
+            rigidBody.angularVelocity = new Vector3f(pickVector3f("Angular Velocity", rigidBody.angularVelocity));
         }
 
         @Override

@@ -4,6 +4,7 @@ import andromeda.DeltaTime;
 import andromeda.ecs.Ecs;
 import andromeda.ecs.component.RigidBody;
 import andromeda.ecs.component.Transform;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Set;
@@ -26,6 +27,14 @@ public class Integration {
         rigidBody.velocity.add(acceleration.mul(DeltaTime.deltaTime));
 
         transform.translate(rigidBody.velocity.mul(DeltaTime.deltaTime, new Vector3f()));
+
+        Quaternionf angularQ = new Quaternionf(rigidBody.angularVelocity.x, rigidBody.angularVelocity.y, rigidBody.angularVelocity.z, 0);
+        Quaternionf currentQ = transform.getRotation();
+
+        //https://gamedev.stackexchange.com/questions/108920/applying-angular-velocity-to-quaternion
+        Quaternionf newQ = angularQ.mul(currentQ).mul(0.5f*DeltaTime.deltaTime).add(currentQ);
+        newQ.normalize();
+        transform.setRotation(newQ);
 
         rigidBody.force.zero();
     }

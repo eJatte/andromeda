@@ -1,18 +1,18 @@
 {
   "entities": [
     {
-      "position": [0, 1.5, 0],
+      "position": [0, 1.0, 0],
       "scale": [1.0, 1.0, 1.0],
       "material": "materials/brick_material.json",
-      "geometry": "cube",
+      "geometry": "D:/Models/sphere.obj",
       "name": "collider_2",
       "children": []
     },
     {
-      "position": [2, 1.5, 0],
+      "position": [2, 1.0, 0],
       "scale": [1.0, 1.0, 1.0],
       "material": "materials/brick_material.json",
-      "geometry": "cube",
+      "geometry": "D:/Models/sphere.obj",
       "name": "collider_1",
       "children": []
     },

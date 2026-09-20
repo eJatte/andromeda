@@ -103,6 +103,11 @@ public class Transform implements Component {
         return this.rotation;
     }
 
+    public void setRotation(Quaternionf rotation) {
+        dirtyFlag = true;
+        this.rotation = rotation;
+    }
+
     public Quaternionf rotateSlerp(Quaternionf q, float alpha) {
         dirtyFlag = true;
         return this.rotation.slerp(q, alpha);
