@@ -77,22 +77,56 @@ public class Solver {
         Vector3f rv_a = collision.contactPoint().sub(t_a.getPosition(), new Vector3f());
         Vector3f rv_b = collision.contactPoint().sub(t_b.getPosition(), new Vector3f());
 
-        Vector3f v_r = r_b.velocity.sub(r_a.velocity, new Vector3f());
+        Vector3f v_a = r_a.angularVelocity.cross(rv_a, new Vector3f()).add(r_a.velocity);
+        Vector3f v_b = r_b.angularVelocity.cross(rv_b, new Vector3f()).add(r_b.velocity);
+
+        Vector3f v_r = v_b.sub(v_a, new Vector3f());
 
         Vector3f n = collision.normal();
 
         float m_ai = r_a.inverseMass;
         float m_bi = r_b.inverseMass;
 
-        float j_s = (-(1 + e) * v_r.dot(n)) / (m_ai + m_bi + (f(I_a, rv_a, n).add(f(I_b, rv_b, n))).dot(n));
+        float j_r_s = (-(1 + e) * v_r.dot(n)) / (m_ai + m_bi + (f(I_a, rv_a, n).add(f(I_b, rv_b, n))).dot(n));
 
-        Vector3f j = n.mul(j_s, new Vector3f());
+        Vector3f j_r = n.mul(j_r_s, new Vector3f());
 
-        r_a.velocity.sub(j.mul(r_a.inverseMass));
-        r_b.velocity.add(j.mul(r_b.inverseMass));
+        r_a.velocity.sub(j_r.mul(r_a.inverseMass, new Vector3f()));
+        r_b.velocity.add(j_r.mul(r_b.inverseMass, new Vector3f()));
 
-        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_s));
-        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_s));
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_r_s));
+        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_r_s));
+
+        float u_s = 0.6f;
+        float u_d = 0.4f;
+
+        Vector3f t = new Vector3f(0);
+        float dot = v_r.dot(n);
+        if (dot != 0) {
+            t = v_r.sub(n.mul(dot, new Vector3f()), new Vector3f());
+            if (t.length() != 0) {
+                t.normalize();
+            }
+        }
+
+        float j_s = u_s*j_r_s;
+        float j_d = u_d*j_r_s;
+
+        Vector3f j_f;
+        float v_dot_t = v_r.dot(t);
+        float what = v_dot_t*r_a.mass;
+        if(v_dot_t == 0 && what <= j_s) {
+            j_f = t.mul(-what, new Vector3f());
+        }
+        else {
+            j_f = t.mul(-j_d, new Vector3f());
+        }
+
+        r_a.velocity.sub(j_f.mul(r_a.inverseMass, new Vector3f()));
+        r_b.velocity.add(j_f.mul(r_b.inverseMass, new Vector3f()));
+
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_f.length()));
+        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_f.length()));
     }
 
     private static Vector3f calculateAngularVelocity(Vector3f tensor, Vector3f r, Vector3f n) {
@@ -110,19 +144,52 @@ public class Solver {
 
         Vector3f rv_a = collision.contactPoint().sub(t_a.getPosition(), new Vector3f());
 
-        Vector3f v_r = new Vector3f().sub(r_a.velocity, new Vector3f());
+        Vector3f v_a = r_a.angularVelocity.cross(rv_a, new Vector3f()).add(r_a.velocity);
+
+        Vector3f v_r = new Vector3f().sub(v_a, new Vector3f());
 
         Vector3f n = collision.normal();
 
         float m_ai = r_a.inverseMass;
 
-        float j_s = (-(1 + e) * v_r.dot(n)) / (m_ai + (f(I_a, rv_a, n)).dot(n));
+        float j_r_s = (-(1 + e) * v_r.dot(n)) / (m_ai + (f(I_a, rv_a, n)).dot(n));
 
-        Vector3f j = n.mul(j_s, new Vector3f());
+        Vector3f j_r = n.mul(j_r_s, new Vector3f());
 
-        r_a.velocity.sub(j.mul(r_a.inverseMass));
+        r_a.velocity.sub(j_r.mul(r_a.inverseMass, new Vector3f()));
 
-        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_s));
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_r_s));
+
+
+
+        float u_s = 0.6f;
+        float u_d = 0.4f;
+
+        Vector3f t = new Vector3f(0);
+        float dot = v_r.dot(n);
+        if (dot != 0) {
+            t = v_r.sub(n.mul(dot, new Vector3f()), new Vector3f());
+            if (t.length() != 0) {
+                t.normalize();
+            }
+        }
+
+        float j_s = u_s*j_r_s;
+        float j_d = u_d*j_r_s;
+
+        Vector3f j_f;
+        float v_dot_t = v_r.dot(t);
+        float what = v_dot_t*r_a.mass;
+        if(v_dot_t == 0 && what <= j_s) {
+            j_f = t.mul(-what, new Vector3f());
+        }
+        else {
+            j_f = t.mul(-j_d, new Vector3f());
+        }
+
+        r_a.velocity.sub(j_f.mul(r_a.inverseMass, new Vector3f()));
+
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_f.length()));
     }
 
     private static Vector3f f(Vector3f tensor, Vector3f r, Vector3f n) {
