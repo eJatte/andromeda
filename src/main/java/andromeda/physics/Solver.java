@@ -4,9 +4,6 @@ import andromeda.ecs.Ecs;
 import andromeda.ecs.component.RigidBody;
 import andromeda.ecs.component.SphereCollider;
 import andromeda.ecs.component.Transform;
-import andromeda.ecs.system.DebugSystem;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -109,28 +106,40 @@ public class Solver {
             }
         }
 
-        float j_s = u_s*j_r_s;
-        float j_d = u_d*j_r_s;
+        float v_dot_t = v_r.dot(t);
+
+        float frictionDenominator = r_a.inverseMass + r_b.inverseMass + f(I_a, rv_a, t).add(f(I_b, rv_b, t)).dot(t);
+
+        float j_f_required = -v_dot_t / frictionDenominator;
+
+        float maxStaticFriction = u_s * Math.abs(j_r_s);
 
         Vector3f j_f;
-        float v_dot_t = v_r.dot(t);
-        float what = v_dot_t*r_a.mass;
-        if(v_dot_t == 0 && what <= j_s) {
-            j_f = t.mul(-what, new Vector3f());
-        }
-        else {
-            j_f = t.mul(-j_d, new Vector3f());
+
+        if (Math.abs(j_f_required) <= maxStaticFriction) {
+            j_f = t.mul(j_f_required, new Vector3f());
+        } else {
+            float j_f_dynamic = -u_d * Math.abs(j_r_s);
+            j_f = t.mul(j_f_dynamic, new Vector3f());
         }
 
         r_a.velocity.sub(j_f.mul(r_a.inverseMass, new Vector3f()));
         r_b.velocity.add(j_f.mul(r_b.inverseMass, new Vector3f()));
 
-        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_f.length()));
-        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_f.length()));
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, j_f));
+        r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, j_f));
     }
 
     private static Vector3f calculateAngularVelocity(Vector3f tensor, Vector3f r, Vector3f n) {
         return tensor.mul(r.cross(n, new Vector3f()), new Vector3f());
+    }
+
+    private static Vector3f f(Vector3f tensor, Vector3f r, Vector3f n) {
+        return tensor.mul(r.cross(n, new Vector3f()).cross(r, new Vector3f()), new Vector3f());
+    }
+
+    private static Vector3f calculateSphericalInertiaTensor(float mass, float radius) {
+        return new Vector3f(1.0f / (2.0f / 5.0f * mass * radius * radius));
     }
 
     private static void impulseFloor(Collision collision, Ecs ecs) {
@@ -160,8 +169,6 @@ public class Solver {
 
         r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_r_s));
 
-
-
         float u_s = 0.6f;
         float u_d = 0.4f;
 
@@ -174,29 +181,28 @@ public class Solver {
             }
         }
 
-        float j_s = u_s*j_r_s;
-        float j_d = u_d*j_r_s;
+        float v_dot_t = v_r.dot(t);
+
+        float frictionDenominator =
+                r_a.inverseMass + f(I_a, rv_a, t).dot(t);
+
+        float j_f_required = -v_dot_t / frictionDenominator;
+
+        float maxStaticFriction = u_s * Math.abs(j_r_s);
 
         Vector3f j_f;
-        float v_dot_t = v_r.dot(t);
-        float what = v_dot_t*r_a.mass;
-        if(v_dot_t == 0 && what <= j_s) {
-            j_f = t.mul(-what, new Vector3f());
-        }
-        else {
-            j_f = t.mul(-j_d, new Vector3f());
+
+        if (Math.abs(j_f_required) <= maxStaticFriction) {
+            j_f = t.mul(j_f_required, new Vector3f());
+        } else {
+            float j_f_dynamic = -u_d * Math.abs(j_r_s);
+            j_f = t.mul(j_f_dynamic, new Vector3f());
         }
 
         r_a.velocity.sub(j_f.mul(r_a.inverseMass, new Vector3f()));
 
-        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_f.length()));
+        r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, j_f));
     }
 
-    private static Vector3f f(Vector3f tensor, Vector3f r, Vector3f n) {
-        return tensor.mul(r.cross(n, new Vector3f()).cross(r, new Vector3f()), new Vector3f());
-    }
 
-    private static Vector3f calculateSphericalInertiaTensor(float mass, float radius) {
-        return new Vector3f(2.0f / 5.0f * mass * radius * radius);
-    }
 }
