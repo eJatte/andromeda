@@ -7,5 +7,7 @@ public class EntityRepresentation {
     public String material;
     public String geometry;
     public String name;
+    public RigidBodyRepresentation rigidbody;
+    public SphereColliderRepresentation sphereCollider;
     public List<EntityRepresentation> children;
 }

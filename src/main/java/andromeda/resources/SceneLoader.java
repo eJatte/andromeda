@@ -1,10 +1,7 @@
 package andromeda.resources;
 
 import andromeda.ecs.Ecs;
-import andromeda.ecs.component.DirectionalLightComponent;
-import andromeda.ecs.component.EcsModel;
-import andromeda.ecs.component.PointLightComponent;
-import andromeda.ecs.component.Transform;
+import andromeda.ecs.component.*;
 import andromeda.ecs.system.TransformSystem;
 import andromeda.geometry.Mesh;
 import andromeda.geometry.Model;
@@ -104,6 +101,16 @@ public class SceneLoader {
         transformComp.setScale(transformComp.getScale().mul(scale));
 
         var transformSystem = ecs.getSystem(TransformSystem.class);
+
+        if (entityRepresentation.rigidbody != null) {
+            RigidBody rigidBody = ecs.addComponent(RigidBody.class, entityId);
+            rigidBody.mass = entityRepresentation.rigidbody.mass;
+        }
+
+        if (entityRepresentation.sphereCollider != null) {
+            SphereCollider collider = ecs.addComponent(SphereCollider.class, entityId);
+            collider.radius = entityRepresentation.sphereCollider.radius;
+        }
 
         for (var childRep : entityRepresentation.children) {
             var childEntityId = loadEntity(childRep, ecs);
