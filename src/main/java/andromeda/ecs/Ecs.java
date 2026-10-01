@@ -1,5 +1,6 @@
 package andromeda.ecs;
 
+import andromeda.config.DebugSettings;
 import andromeda.ecs.component.*;
 import andromeda.ecs.entity.EntityManager;
 import andromeda.ecs.event.CollisionEvent;
@@ -57,7 +58,9 @@ public class Ecs {
     }
 
     public void update() {
-        systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
+        if (DebugSettings.Physics.simulate) {
+            systemManager.getSystems(SystemType.PHYSICS).forEach(EcsSystem::update);
+        }
         eventManager.triggerEvents();
         systemManager.getSystems(SystemType.LOOP).forEach(EcsSystem::update);
         eventManager.triggerEvents();

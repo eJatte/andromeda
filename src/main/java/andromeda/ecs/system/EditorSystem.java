@@ -249,6 +249,8 @@ public class EditorSystem extends EcsSystem {
         ImGui.begin("Debug Settings", ImGuiWindowFlags.NoBackground);
         DebugSettings.Colliders.enabled = pickBoolean("Show Colliders", DebugSettings.Colliders.enabled);
 
+        DebugSettings.Physics.simulate = pickBoolean("Simulate Physics", DebugSettings.Physics.simulate);
+
         ImGui.end();
     }
 

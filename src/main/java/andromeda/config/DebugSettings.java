@@ -6,4 +6,7 @@ public class DebugSettings {
     public static class Colliders {
         public static boolean enabled = false;
     }
+    public static class Physics {
+        public static boolean simulate = true;
+    }
 }
