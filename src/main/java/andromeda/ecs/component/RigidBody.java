@@ -8,6 +8,7 @@ public class RigidBody implements Component {
     public float mass = 1;
     public float inverseMass = 1;
     public Vector3f force = new Vector3f(0);
+    public Vector3f torque = new Vector3f(0);
     public float drag = 0.01f;
 
     @Override

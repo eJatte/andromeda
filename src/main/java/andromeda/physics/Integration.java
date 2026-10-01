@@ -26,9 +26,9 @@ public class Integration {
 
         // https://en.wikipedia.org/wiki/Drag_(physics)
         Vector3f v = new Vector3f(rigidBody.velocity);
-        float drag_coef = 0.3f;
+        float drag = 0.3f;
         // we take the absolute to preserve direction
-        Vector3f drag_force = v.absolute(new Vector3f()).mul(v).mul(-drag_coef);
+        Vector3f drag_force = v.absolute(new Vector3f()).mul(v).mul(-drag);
         rigidBody.force.add(drag_force);
 
         Vector3f acceleration = rigidBody.force.mul(rigidBody.inverseMass, new Vector3f());
@@ -37,6 +37,19 @@ public class Integration {
         rigidBody.velocity.add(acceleration.mul(DeltaTime.deltaTime));
 
         transform.translate(rigidBody.velocity.mul(DeltaTime.deltaTime, new Vector3f()));
+
+
+        Vector3f aV = new Vector3f(rigidBody.angularVelocity);
+        float angular_drag = 0.05f;
+        // we take the absolute to preserve direction
+        Vector3f torque = aV.absolute(new Vector3f()).mul(aV).mul(-angular_drag);
+        rigidBody.torque.add(torque);
+
+        Vector3f I = calculateSphericalInvertedInertiaTensor(rigidBody.mass, sphereCollider.radius);
+        Vector3f angularAcceleration = rigidBody.torque.mul(I, new Vector3f());
+
+        rigidBody.angularVelocity.add(angularAcceleration.mul(DeltaTime.deltaTime));
+
 
         Quaternionf angularQ = new Quaternionf(rigidBody.angularVelocity.x, rigidBody.angularVelocity.y, rigidBody.angularVelocity.z, 0);
         Quaternionf currentQ = transform.getRotation();
@@ -47,5 +60,10 @@ public class Integration {
         transform.setRotation(newQ);
 
         rigidBody.force.zero();
+        rigidBody.torque.zero();
+    }
+
+    private static Vector3f calculateSphericalInvertedInertiaTensor(float mass, float radius) {
+        return new Vector3f(1.0f / (2.0f / 5.0f * mass * radius * radius));
     }
 }
