@@ -67,7 +67,7 @@ public class Solver {
         SphereCollider s_b = ecs.getComponent(SphereCollider.class, collision.entity_b());
         // restitution calculate based on min(rest1, rest2) value between 0-1. Determines of elastic the collision is.
         // for now we hardcode it
-        float e = 1;
+        float e = 0.7f;
         Vector3f I_a = calculateSphericalInertiaTensor(r_a.mass, s_a.radius);
         Vector3f I_b = calculateSphericalInertiaTensor(r_b.mass, s_b.radius);
 

@@ -15,7 +15,7 @@
       "children": []
     },
     {
-      "position": [2, 1.0, 0],
+      "position": [0.01, 3.0, 0],
       "scale": [1.0, 1.0, 1.0],
       "material": "materials/brick_material.json",
       "geometry": "D:/Models/sphere.obj",
@@ -29,10 +29,94 @@
       "children": []
     },
     {
-      "position": [0.0, 0.0, 0.0],
+      "position": [0, 5.0, 0.01],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_3",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
+      "children": []
+    },
+    {
+      "position": [0.3, 7.0, 0.00],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_3",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
+      "children": []
+    },
+    {
+      "position": [2.0, 0.0, 0.0],
       "scale": [1000.0, 1.0, 1000.0],
       "material": "materials/gray_prototype.json",
       "geometry": "plane",
+      "children": []
+    },
+    {
+      "position": [3.2, 1.0, -0.03],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_2",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
+      "children": []
+    },
+    {
+      "position": [3.01, 3.0, 0.02],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_1",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
+      "children": []
+    },
+    {
+      "position": [3, 5.0, -0.03],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_3",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
+      "children": []
+    },
+    {
+      "position": [2.8, 7.0, 0.00],
+      "scale": [1.0, 1.0, 1.0],
+      "material": "materials/brick_material.json",
+      "geometry": "D:/Models/sphere.obj",
+      "name": "collider_3",
+      "rigidbody": {
+        "mass": 40
+      },
+      "sphereCollider": {
+        "radius": 1
+      },
       "children": []
     }
   ],
@@ -40,7 +124,6 @@
     {
       "rotation": [60, 45, 0],
       "color":[1, 1,1],
-      "castShadows": false,
       "intensity": 2.3,
       "castShadows": true,
       "type": "directional"
