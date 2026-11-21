@@ -8,5 +8,6 @@ public class DebugSettings {
     }
     public static class Physics {
         public static boolean simulate = true;
+        public static boolean rigid_bodies = true;
     }
 }

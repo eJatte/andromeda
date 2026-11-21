@@ -25,4 +25,11 @@ public class Vertex {
         this.tangent = new Vector3f();
         this.uv = new Vector2f();
     }
+
+    public Vertex(Vector3f position, Vector3f normal) {
+        this.position = position;
+        this.normal = normal;
+        this.tangent = new Vector3f();
+        this.uv = new Vector2f();
+    }
 }

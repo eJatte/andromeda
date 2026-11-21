@@ -64,10 +64,11 @@ public class SceneLoader {
     }
 
     private static int loadEntity(EntityRepresentation entityRepresentation, Ecs ecs) {
-        var material = Material.loadMaterial(entityRepresentation.material);
+        var material = entityRepresentation.material != null ? Material.loadMaterial(entityRepresentation.material) : new Material();
 
         Model model = switch (entityRepresentation.geometry) {
             case "cube" -> new Model(new Mesh(Primitives.cube(), material));
+            case "cone" -> new Model(new Mesh(Primitives.cone(), material));
             case "plane" -> new Model(new Mesh(Primitives.plane(), material));
             default -> null;
         };
@@ -112,10 +113,12 @@ public class SceneLoader {
             collider.radius = entityRepresentation.sphereCollider.radius;
         }
 
-        for (var childRep : entityRepresentation.children) {
-            var childEntityId = loadEntity(childRep, ecs);
+        if (entityRepresentation.children != null) {
+            for (var childRep : entityRepresentation.children) {
+                var childEntityId = loadEntity(childRep, ecs);
 
-            transformSystem.setParent(childEntityId, entityId);
+                transformSystem.setParent(childEntityId, entityId);
+            }
         }
 
         return entityId;

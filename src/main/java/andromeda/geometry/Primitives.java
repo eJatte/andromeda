@@ -1,5 +1,6 @@
 package andromeda.geometry;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -193,16 +194,16 @@ public class Primitives {
         var uvs = new Vector2f[vertices.length];
         for (int i = 0; i < vertices.length; i++) {
             Vector3f v = vertices[i];
-            float u = (float)(0.5 + Math.atan2(v.z, v.x) / (2 * Math.PI));
-            float vCoord = (float)(0.5 - Math.asin(v.y) / Math.PI);
+            float u = (float) (0.5 + Math.atan2(v.z, v.x) / (2 * Math.PI));
+            float vCoord = (float) (0.5 - Math.asin(v.y) / Math.PI);
             uvs[i] = new Vector2f(u, vCoord);
         }
 
         var indices = new int[]{
-                0, 4, 1,  0, 9, 4,   9, 5, 4,  4, 5, 8,   4, 8, 1,
-                8, 10, 1, 8, 3, 10,  5, 3, 8,  5, 2, 3,   2, 7, 3,
-                7, 10, 3, 7, 6, 10,  7, 11, 6, 11, 0, 6,  0, 1, 6,
-                6, 1, 10, 9, 0, 11,  9, 11, 2, 9, 2, 5,   7, 2, 11
+                0, 4, 1, 0, 9, 4, 9, 5, 4, 4, 5, 8, 4, 8, 1,
+                8, 10, 1, 8, 3, 10, 5, 3, 8, 5, 2, 3, 2, 7, 3,
+                7, 10, 3, 7, 6, 10, 7, 11, 6, 11, 0, 6, 0, 1, 6,
+                6, 1, 10, 9, 0, 11, 9, 11, 2, 9, 2, 5, 7, 2, 11
         };
 
         return new Geometry(vertices, uvs, indices);
@@ -394,18 +395,76 @@ public class Primitives {
     }
 
     public static Geometry circle() {
-        int segments = 80;
-        var vertices = new Vector3f[segments];
+        return circle(80);
+    }
+
+    public static Geometry circle(int segments) {
+        Vector3f[] vertices = new Vector3f[segments];
+        for (int i = 0; i < segments; i++) {
+            float angle = (float) Math.PI * 2 / segments * i;
+            vertices[i] = new Vector3f((float) Math.cos(angle), (float) Math.sin(angle), 0);
+        }
+        return new Geometry(vertices);
+    }
+
+    public static Geometry cone() {
+        return cone(80);
+    }
+
+    public static Geometry cone(int segments) {
+        // we need to double the bottom plate vertices since we want different normals for the top and bottom faces
+        Vector3f[] vertices = new Vector3f[segments * 2 + 1 + segments];
+        Vector3f[] normals = new Vector3f[segments * 2 + 1 + segments];
+
+        Vector3f bot_normal = new Vector3f(0, -1, 0);
+
+        int top_offset = (segments + 1);
 
         for (int i = 0; i < segments; i++) {
-            float theta = 2.0f * 3.1415926f * i / segments;
+            float angle = (float) Math.PI * 2 / segments * i;
+            float radius = 0.5f;
+            Vector3f position = new Vector3f((float) Math.cos(angle) * radius, 0, (float) Math.sin(angle) * radius);
 
-            float x = (float) Math.cos(theta);
-            float y = (float) Math.sin(theta);
-            vertices[i] = new Vector3f(x, y, 0);
+            vertices[i] = position;
+            normals[i] = bot_normal;
+
+            Vector3f up = new Vector3f(0, 1, 0);
+            Vector3f normal = position.add(up, new Vector3f());
+
+            vertices[top_offset + i] = position;
+            normals[top_offset + i] = normal;
+            // we need to add top position for each segment because the normal needs to be different for each face
+            vertices[top_offset + segments + i] = up;
+            normals[top_offset + segments + i] = normal;
         }
 
-        return new Geometry(vertices);
+        // bottom can be "constant" since it is a flat plane
+        vertices[segments] = new Vector3f(0); // bottom
+        normals[segments] = bot_normal;
+
+
+        int[] indices = new int[segments * 6];
+
+        for (int i = 0; i < segments; i++) {
+            int offset = 6 * i;
+            // bottom segment
+            indices[offset + 0] = i + 0;
+            indices[offset + 1] = (i + 1) % segments;
+            indices[offset + 2] = segments;
+
+            // top segment
+            // different winding order since the faces are in different directions
+            indices[offset + 3] = top_offset + i + 0;
+            indices[offset + 4] = top_offset + segments + i;
+            indices[offset + 5] = top_offset + (i + 1) % segments;
+        }
+
+        return new Geometry(vertices, normals, indices);
+    }
+
+
+    public static Geometry line() {
+        return new Geometry(new Vector3f[]{new Vector3f(0), new Vector3f(0, 0, 1)});
     }
 
     public static int getIndex(int x, int y, Vector2i v_size) {

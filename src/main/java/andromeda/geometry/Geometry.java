@@ -19,8 +19,25 @@ public class Geometry {
         this.vertices = Arrays.stream(positions).map(Vertex::new).toArray(Vertex[]::new);
     }
 
+    public Geometry(Vector3f[] positions, Vector3f[] normals) {
+        Vertex[] vertices = new Vertex[positions.length];
+        for (int i = 0; i < positions.length; i++) {
+            vertices[i] = new Vertex(positions[i], normals[i]);
+        }
+        this.vertices = vertices;
+    }
+
     public Geometry(Vector3f[] positions, int[] indices) {
         this.vertices = Arrays.stream(positions).map(Vertex::new).toArray(Vertex[]::new);
+        this.indices = indices;
+    }
+
+    public Geometry(Vector3f[] positions, Vector3f[] normals, int[] indices) {
+        Vertex[] vertices = new Vertex[positions.length];
+        for (int i = 0; i < positions.length; i++) {
+            vertices[i] = new Vertex(positions[i], normals[i]);
+        }
+        this.vertices = vertices;
         this.indices = indices;
     }
 
@@ -87,6 +104,13 @@ public class Geometry {
         glBindVertexArray(m_vao);
         glLineWidth(2.0f);
         glDrawArrays(GL_LINE_LOOP, 0, this.vertices.length);
+        glBindVertexArray(0);
+    }
+
+    public void drawLine() {
+        glBindVertexArray(m_vao);
+        glLineWidth(2.0f);
+        glDrawArrays(GL_LINE, 0, this.vertices.length);
         glBindVertexArray(0);
     }
 
