@@ -26,10 +26,12 @@ public class Integration {
 
         // https://en.wikipedia.org/wiki/Drag_(physics)
         Vector3f v = new Vector3f(rigidBody.velocity);
-        float drag = 0.3f;
-        // we take the absolute to preserve direction
-        Vector3f drag_force = v.absolute(new Vector3f()).mul(v).mul(-drag);
-        rigidBody.force.add(drag_force);
+        float vel_mag = v.length();
+        if (vel_mag > 1e-8) {
+            float drag = 0.2f;
+            Vector3f drag_force = v.normalize(new Vector3f()).mul(-vel_mag * drag);
+            rigidBody.force.add(drag_force);
+        }
 
         Vector3f acceleration = rigidBody.force.mul(rigidBody.inverseMass, new Vector3f());
         acceleration.add(0, -1 * GRAVITY, 0);
