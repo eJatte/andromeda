@@ -67,7 +67,7 @@ public class Solver {
         SphereCollider s_b = ecs.getComponent(SphereCollider.class, collision.entity_b());
         // restitution calculate based on min(rest1, rest2) value between 0-1. Determines of elastic the collision is.
         // for now we hardcode it
-        float e = 0.7f;
+        float e = 0.1f;
         Vector3f I_a = calculateSphericalInertiaTensor(r_a.mass, s_a.radius);
         Vector3f I_b = calculateSphericalInertiaTensor(r_b.mass, s_b.radius);
 
@@ -94,8 +94,8 @@ public class Solver {
         r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_r_s));
         r_b.angularVelocity.add(calculateAngularVelocity(I_b, rv_b, n).mul(j_r_s));
 
-        float u_s = 0.6f;
-        float u_d = 0.4f;
+        float u_s = 0.9f;
+        float u_d = 0.8f;
 
         Vector3f t = new Vector3f(0);
         float dot = v_r.dot(n);
@@ -148,7 +148,7 @@ public class Solver {
         SphereCollider s_a = ecs.getComponent(SphereCollider.class, collision.entity_a());
         // restitution calculate based on min(rest1, rest2) value between 0-1. Determines of elastic the collision is.
         // for now we hardcode it
-        float e = 0.6f;
+        float e = 0.1f;
         Vector3f I_a = calculateSphericalInertiaTensor(r_a.mass, s_a.radius);
 
         Vector3f rv_a = collision.contactPoint().sub(t_a.getPosition(), new Vector3f());
@@ -169,8 +169,8 @@ public class Solver {
 
         r_a.angularVelocity.sub(calculateAngularVelocity(I_a, rv_a, n).mul(j_r_s));
 
-        float u_s = 0.3f;
-        float u_d = 0.1f;
+        float u_s = 0.9f;
+        float u_d = 0.8f;
 
         Vector3f t = new Vector3f(0);
         float dot = v_r.dot(n);
