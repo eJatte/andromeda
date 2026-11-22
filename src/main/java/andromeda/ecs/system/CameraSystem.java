@@ -1,12 +1,16 @@
 package andromeda.ecs.system;
 
 import andromeda.ecs.Ecs;
-import andromeda.ecs.component.CameraComponent;
-import andromeda.ecs.component.ComponentType;
-import andromeda.ecs.component.Perspective;
-import andromeda.ecs.component.Transform;
+import andromeda.ecs.component.*;
+import andromeda.geometry.Geometry;
+import andromeda.geometry.Mesh;
+import andromeda.geometry.Primitives;
+import andromeda.input.Input;
+import andromeda.input.KeyCode;
+import andromeda.material.Material;
 import andromeda.projection.Camera;
 import andromeda.projection.EcsCamera;
+import andromeda.util.Colors;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -16,6 +20,9 @@ import java.util.Set;
 public class CameraSystem extends EcsSystem {
     private int mainCameraEntityId = -1;
     private TransformSystem transformSystem;
+    private Geometry sphere;
+
+    private Vector3f position, forward;
 
     public CameraSystem(Ecs ecs) {
         super(ecs);
@@ -24,6 +31,8 @@ public class CameraSystem extends EcsSystem {
     @Override
     public void init() {
         transformSystem = ecs.getSystem(TransformSystem.class);
+        this.sphere = Primitives.cube();
+        this.sphere.upload();
     }
 
     @Override
@@ -34,6 +43,7 @@ public class CameraSystem extends EcsSystem {
     @Override
     public void update() {
         mainCameraEntityId = getMainCameraEntityId();
+        shoot(this.position, this.forward);
     }
 
     private int getMainCameraEntityId() {
@@ -63,7 +73,31 @@ public class CameraSystem extends EcsSystem {
 
         Camera camera = new EcsCamera(perspective, view);
         camera.setPosition(position);
+
+        // todo remove all of this, add a real "shoot item" or something
+        this.position = position;
+        this.forward = forward;
+
         return camera;
+    }
+
+    // todo remove all of this, add a real "shoot item" or something
+    private void shoot(Vector3f position, Vector3f forward) {
+        if (Input.get().keyUp(KeyCode.MOUSE_BUTTON_LEFT)) {
+            int entityId = ecs.createEntity();
+            Transform transform = ecs.getComponent(Transform.class, entityId);
+            transform.setPosition(new Vector3f(forward.mul(3, new Vector3f()).add(position)));
+
+            Material material = new Material();
+            material.diffuse = Colors.Debug.RED;
+            Mesh mesh = new Mesh(this.sphere, material);
+            EcsModel ecsModel = ecs.addComponent(EcsModel.class, entityId);
+            ecsModel.getMeshes().add(mesh);
+
+            ecs.addComponent(SphereCollider.class, entityId);
+            RigidBody rigidBody = ecs.addComponent(RigidBody.class, entityId);
+            rigidBody.velocity.add(forward.mul(50, new Vector3f()));
+        }
     }
 
     @Override
